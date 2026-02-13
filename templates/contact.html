@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Get in Touch - {{ super() }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='CSS/contact.css') }}">
+<style>
+    .contact-page { background: #f9fafb; padding: 60px 20px; }
+    .contact-header { text-align: center; margin-bottom: 60px; }
+    .contact-header h1 { font-size: 2.8rem; color: #1a202c; font-weight: 700; margin-bottom: 15px; }
+    .contact-header p { font-size: 1.1rem; color: #718096; max-width: 600px; margin: 0 auto; }
+    .contact-container { max-width: 1000px; margin: 0 auto; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .contact-info-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    .contact-info-box h3 { color: #1a202c; font-weight: 700; margin-bottom: 30px; font-size: 1.4rem; }
+    .contact-method-item { padding: 20px 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: flex-start; gap: 20px; }
+    .contact-method-item:last-child { border-bottom: none; }
+    .contact-icon { font-size: 1.8rem; color: #1a365d; width: 50px; text-align: center; flex-shrink: 0; }
+    .contact-details h4 { color: #1a202c; font-weight: 600; margin: 0 0 5px 0; }
+    .contact-details p { color: #718096; margin: 0; }
+    .contact-details a { color: #1a365d; text-decoration: none; font-weight: 500; }
+    .contact-details a:hover { text-decoration: underline; }
+    .contact-form-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    .form-group { margin-bottom: 25px; }
+    .form-group label { display: block; color: #1a202c; font-weight: 600; margin-bottom: 8px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 1rem; font-family: inherit; transition: all 0.3s; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #1a365d; box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1); }
+    .form-group textarea { resize: vertical; min-height: 150px; }
+    .submit-btn { background: #1a365d; color: white; padding: 14px 35px; border: none; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s; width: 100%; }
+    .submit-btn:hover { background: #0f2847; transform: scale(1.02); }
+    .info-section { background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: white; padding: 40px; border-radius: 10px; margin-top: 40px; text-align: center; }
+    .info-section h3 { color: white; margin-bottom: 20px; font-size: 1.4rem; font-weight: 700; }
+    .info-section p { font-size: 1.05rem; margin-bottom: 20px; opacity: 0.9; }
+    .quick-links { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 25px; }
+    .quick-link { background: rgba(255,255,255,0.1); color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.3s; }
+    .quick-link:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+    @media (max-width: 768px) {
+        .contact-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contact-page">
+    <div class="contact-header">
+        <h1><i class="fas fa-envelope"></i> Let's Connect!</h1>
+        <p>Open to internships, learning opportunities, and discussing how I can contribute to your team. Let's start a conversation about growth, challenges, and great projects!</p>
+    </div>
+
+    <div class="contact-container">
+        <div class="contact-grid">
+            <!-- CONTACT INFO -->
+            <div class="contact-info-box">
+                <h3><i class="fas fa-info-circle"></i> Contact Information</h3>
+                
+                <div class="contact-method-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Email</h4>
+                        <a href="mailto:ajayprakashp59@gmail.com">ajayprakashp59@gmail.com</a>
+                    </div>
+                </div>
+
+                <div class="contact-method-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Phone</h4>
+                        <a href="tel:+918881254553">+91 8881254553</a>
+                    </div>
+                </div>
+
+                <div class="contact-method-item">
+                    <div class="contact-icon">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>WhatsApp</h4>
+                        <a href="https://wa.me/918881254553" target="_blank">Chat on WhatsApp</a>
+                    </div>
+                </div>
+
+                <div class="contact-method-item">
+                    <div class="contact-icon">
+                        <i class="fab fa-linkedin"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>LinkedIn</h4>
+                        <a href="https://www.linkedin.com/in/ajayprakashpandey25" target="_blank">Connect on LinkedIn</a>
+                    </div>
+                </div>
+
+                <div style="background: #f0f4f8; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                    <h4 style="color: #1a365d; margin-top: 0;">Response Time</h4>
+                    <p style="margin: 0; color: #718096;">I typically respond within <strong>24 hours</strong> of receiving your message. For urgent matters, please call or use WhatsApp.</p>
+                </div>
+            </div>
+
+            <!-- CONTACT FORM -->
+            <div class="contact-form-box">
+                <h3><i class="fas fa-paper-plane"></i> Send Message</h3>
+                <form id="contactForm" action="{{ url_for('contact_post') }}" method="post">
+
+        <label for="message">Your Message *</label>
+        <textarea id="message" name="message" rows="6" required placeholder="Tell me something... (minimum 10 characters)"></textarea>
+
+                    <div class="form-group">
+                        <label for="name">Your Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="John Doe" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Your Email *</label>
+                        <input type="email" id="email" name="email" required placeholder="you@example.com" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Your Message *</label>
+                        <textarea id="message" name="message" required placeholder="Tell me about your project..."></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- INFO SECTION -->
+        <div class="info-section">
+            <h3><i class="fas fa-check-circle"></i> What Happens Next?</h3>
+            <p>Once you reach out, here's what to expect:</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 900px; margin: 20px auto;">
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: #b8860b;">⏱️ Quick Response</h4>
+                    <p style="font-size: 0.9rem; margin: 0;">I respond within 24 hours to connect and learn about opportunities</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: #b8860b;">💬 Conversation</h4>
+                    <p style="font-size: 0.9rem; margin: 0;">We'll discuss growth opportunities, internships, or mentorship possibilities</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: #b8860b;">🚀 Next Steps</h4>
+                    <p style="font-size: 0.9rem; margin: 0;">Explore how I can contribute and grow with your team</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle form submission with notification
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('name').value;
+    
+    // Play notification sound
+    playNotificationSound();
+    
+    // Show alert
+    showAlert(`✅ Thank you ${name}! Your message has been sent successfully. We'll be in touch soon!`, 'success');
+    
+    // Submit form after a short delay
+    setTimeout(() => {
+        this.submit();
+    }, 1000);
+});
+
+// Play notification sound
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (e) {
+        console.log('Audio notification not available');
+    }
+}
+
+// Show notification
+function showAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 9999;
+        font-weight: 600;
+        animation: slideIn 0.3s ease;
+        max-width: 400px;
+    `;
+    alert.textContent = message;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => alert.remove(), 300);
+    }, 4000);
+}
+
+// Add animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+{% endblock %}

@@ -1,0 +1,57 @@
+
+{% extends "base.html" %}
+
+{% block title %}Portfolio Projects - {{ super() }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='CSS/display.css') }}">
+<style>
+  .projects-page { background: #f9fafb; padding: 60px 20px; }
+  .projects-header { text-align: center; margin-bottom: 60px; }
+  .projects-header h1 { font-size: 2.8rem; color: #1a202c; font-weight: 700; margin-bottom: 15px; }
+  .projects-header p { font-size: 1.1rem; color: #718096; max-width: 600px; margin: 0 auto; }
+  .projects-container { max-width: 1200px; margin: 0 auto; }
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; margin-bottom: 40px; }
+  .project-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: all 0.3s ease; border-top: 4px solid #1a365d; }
+  .project-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+  .project-content { padding: 30px; }
+  .project-name { font-size: 1.3rem; font-weight: 700; color: #1a202c; margin-bottom: 12px; }
+  .project-desc { color: #718096; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px; min-height: 80px; }
+  .project-link { display: inline-block; background: #1a365d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+  .project-link:hover { background: #0f2847; transform: scale(1.05); }
+  .no-projects { text-align: center; padding: 60px 20px; background: white; border-radius: 10px; }
+  .no-projects p { font-size: 1.1rem; color: #718096; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="projects-page">
+  <div class="projects-container">
+    <div class="projects-header">
+      <h1><i class="fas fa-briefcase"></i> Project Showcase</h1>
+      <p>🚀 Projects showcasing my learning journey and growth as a full-stack web developer. Each project represents hands-on experience with modern web technologies and best practices.</p>
+    </div>
+
+    {% if projects %}
+      <div class="projects-grid">
+        {% for project in projects %}
+        <div class="project-card">
+          <div class="project-content">
+            <h3 class="project-name">{{ project[1] }}</h3>
+            <p class="project-desc">{{ project[3] }}</p>
+            <a href="{{ project[2] }}" target="_blank" rel="noopener noreferrer" class="project-link">
+              <i class="fas fa-external-link-alt"></i> View Project
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-projects">
+        <i class="fas fa-folder-open" style="font-size: 4rem; color: #cbd5e0; margin-bottom: 20px; display: block;"></i>
+        <p>Projects portfolio is being curated and will be available soon.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,254 @@
+/* ========================================
+   DASHBOARD - CONSISTENT UNIFIED LAYOUT
+   Same colors and styling as home page
+   ======================================== */
+
+:root {
+    --primary: #5a67d8;
+    --primary-dark: #4c51bf;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --bg-light: #f0f2f5;
+    --bg-white: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1 0 auto;
+}
+
+/* Dashboard section */
+.dashboard,
+.content-section {
+    padding: 2rem 1.5rem;
+    background: var(--bg-white);
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.dashboard:last-child {
+    border-bottom: none;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-dark);
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+/* Paragraphs */
+p {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+}
+
+.dashboard h1 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: #00d4ff;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 280px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: cardFadeIn 0.8s ease-out backwards;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+  color: #0077cc;
+  margin-top: 0;
+}
+
+.card ul {
+  list-style-type: none;
+  padding: 0;
+  font-size: 1rem;
+  margin: 0;
+  text-align: left;
+}
+
+.card li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: color 0.3s ease;
+}
+
+.card li:last-child {
+  border-bottom: none;
+}
+
+.card li:hover {
+  color: #0077cc;
+  padding-left: 5px;
+}
+
+/* ===== RESPONSIVE MEDIA QUERIES ===== */
+
+/* Extra Small Devices (320px - 480px) */
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 2rem 1rem;
+  }
+
+  .dashboard h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-container {
+    gap: 1rem;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 100%;
+    padding: 1.5rem;
+  }
+
+  .card h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card ul {
+    font-size: 0.9rem;
+  }
+}
+
+/* Small Devices (480px - 768px) */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .dashboard h1 {
+    font-size: 2rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .card-container {
+    gap: 1.5rem;
+  }
+
+  .card {
+    width: calc(50% - 0.75rem);
+    padding: 1.75rem;
+  }
+
+  .card h2 {
+    font-size: 1.4rem;
+  }
+
+  .card ul {
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablets (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard {
+    padding: 3rem 2rem;
+  }
+
+  .dashboard h1 {
+    font-size: 2.3rem;
+  }
+
+  .card-container {
+    gap: 1.75rem;
+  }
+
+  .card {
+    width: calc(33.333% - 1.17rem);
+  }
+}
+
+/* Large Devices (1024px+) */
+@media (min-width: 1025px) {
+  .dashboard {
+    padding: 4rem 2rem;
+  }
+
+  .dashboard h1 {
+    font-size: 2.5rem;
+  }
+
+  .card-container {
+    gap: 2rem;
+    justify-content: center;
+  }
+
+  .card {
+    width: 280px;
+  }
+}
+

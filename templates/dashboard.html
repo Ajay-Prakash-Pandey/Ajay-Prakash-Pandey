@@ -1,0 +1,822 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="dashboard-header">
+        <h1>📊 Admin Dashboard</h1>
+        <div class="dashboard-actions">
+            <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">Edit Profile</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="dashboard-grid">
+        <!-- Portfolio Summary -->
+        <div class="dashboard-card">
+            <h3>📈 Portfolio Summary</h3>
+            <div class="summary-stats">
+                <div class="stat">
+                    <span class="stat-value">{{ projects|length }}</span>
+                    <span class="stat-label">Projects</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">{{ skills|length }}</span>
+                    <span class="stat-label">Skills</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">{{ messages|length }}</span>
+                    <span class="stat-label">Messages</span>
+                </div>
+            </div>
+            <a href="{{ url_for('edit_profile') }}" class="btn btn-sm btn-primary">Manage Profile</a>
+        </div>
+        
+        <!-- Recent Messages -->
+        <div class="dashboard-card">
+            <h3>💬 Recent Messages</h3>
+            {% if messages %}
+                <div class="recent-messages">
+                    {% for msg in messages[:3] %}
+                        <div class="message-item">
+                            <p class="msg-from"><strong>{{ msg.name }}</strong></p>
+                            <p class="msg-preview">{{ msg.message[:80] }}...</p>
+                            <small class="msg-time">{{ msg.created_at.strftime('%d %b %H:%M') }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('messages') }}" class="btn btn-sm btn-secondary">View All Messages</a>
+            {% else %}
+                <p>No messages yet</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Skills Management Section -->
+    <div class="dashboard-section">
+        <h2>⭐ Skills Management</h2>
+        
+        <div class="section-grid">
+            <!-- Add Skill Form -->
+            <div class="form-card">
+                <h3>Add New Skill</h3>
+                <form method="POST" action="{{ url_for('add_skill') }}" class="dashboard-form">
+                    <div class="form-group">
+                        <label for="skill_name">Skill Name *</label>
+                        <input type="text" id="skill_name" name="skill_name" required class="form-control" 
+                               placeholder="e.g., Python, React, etc">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Category *</label>
+                        <select id="category" name="category" required class="form-control">
+                            <option value="">Select Category</option>
+                            <option value="Frontend">Frontend</option>
+                            <option value="Backend">Backend</option>
+                            <option value="Database">Database</option>
+                            <option value="Tools">Tools & Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="proficiency">Proficiency Level</label>
+                        <div class="slider-group">
+                            <input type="range" id="proficiency" name="proficiency" min="0" max="100" value="50" 
+                                   class="skill-slider" onchange="updateProficiencyDisplay(this)">
+                            <span id="proficiency-display">50%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="3" class="form-control" 
+                                  placeholder="Brief description of your proficiency..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">➕ Add Skill</button>
+                </form>
+            </div>
+            
+            <!-- Skills List -->
+            <div class="form-card">
+                <h3>Current Skills ({{ skills|length }})</h3>
+                {% if skills %}
+                    <div class="skills-list">
+                        {% for skill in skills %}
+                            <div class="skill-card">
+                                <div class="skill-header">
+                                    <h4>{{ skill.skill_name }}</h4>
+                                    <span class="category-badge">{{ skill.category }}</span>
+                                </div>
+                                {% if skill.description %}
+                                    <p class="skill-description">{{ skill.description }}</p>
+                                {% endif %}
+                                <div class="skill-proficiency">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: {{ skill.proficiency }}%"></div>
+                                    </div>
+                                    <span>{{ skill.proficiency }}%</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('delete_skill', skill_id=skill.id) }}" 
+                                      style="display:inline;" 
+                                      onsubmit="return confirm('Delete this skill?')">
+                                    <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-message">No skills added yet. Start by adding your first skill!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Projects Management Section -->
+    <div class="dashboard-section">
+        <h2>💼 Projects Management</h2>
+        
+        <div class="section-grid">
+            <!-- Add Project Form -->
+            <div class="form-card">
+                <h3>Add New Project</h3>
+                <form method="POST" action="{{ url_for('add_project') }}" class="dashboard-form">
+                    <div class="form-group">
+                        <label for="pname">Project Name *</label>
+                        <input type="text" id="pname" name="pname" required class="form-control" 
+                               placeholder="Project name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="projectlink">Project Link</label>
+                        <input type="url" id="projectlink" name="projectlink" class="form-control" 
+                               placeholder="https://github.com/...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="projectDescripton">Description</label>
+                        <textarea id="projectDescripton" name="projectDescripton" rows="4" class="form-control" 
+                                  placeholder="Project description..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">➕ Add Project</button>
+                </form>
+            </div>
+            
+            <!-- Projects List -->
+            <div class="form-card">
+                <h3>Current Projects ({{ projects|length }})</h3>
+                {% if projects %}
+                    <div class="projects-list">
+                        {% for project in projects %}
+                            <div class="project-card">
+                                <h4>{{ project.pname }}</h4>
+                                {% if project.projectDescripton %}
+                                    <p>{{ project.projectDescripton }}</p>
+                                {% endif %}
+                                <div class="project-actions">
+                                    {% if project.projectlink %}
+                                        <a href="{{ project.projectlink }}" target="_blank" class="btn btn-sm btn-info">
+                                            🔗 View
+                                        </a>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('delete_project', project_id=project.id) }}" 
+                                          style="display:inline;" 
+                                          onsubmit="return confirm('Delete this project?')">
+                                        <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-message">No projects added yet. Add your first project!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Homepage Services Management -->
+    <div class="dashboard-section">
+        <h2>🧩 Homepage Services</h2>
+        <div class="section-grid">
+            <div class="form-card">
+                <h3>Add Service Card</h3>
+                <form method="POST" action="{{ url_for('add_service_card') }}" class="dashboard-form">
+                    <div class="form-group">
+                        <label for="service_title">Title *</label>
+                        <input type="text" id="service_title" name="title" required class="form-control" placeholder="e.g., Security & Quality">
+                    </div>
+                    <div class="form-group">
+                        <label for="service_icon_class">Icon Class</label>
+                        <input type="text" id="service_icon_class" name="icon_class" class="form-control" placeholder="e.g., fas fa-shield-alt">
+                    </div>
+                    <div class="form-group">
+                        <label for="service_sort_order">Order</label>
+                        <input type="number" id="service_sort_order" name="sort_order" value="0" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="service_description">Description *</label>
+                        <textarea id="service_description" name="description" rows="3" required class="form-control" placeholder="Service description"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">➕ Add Service Card</button>
+                </form>
+            </div>
+
+            <div class="form-card">
+                <h3>Current Service Cards ({{ service_cards|length }})</h3>
+                {% if service_cards %}
+                    <div class="skills-list">
+                        {% for card in service_cards %}
+                            <div class="skill-card">
+                                <div class="skill-header">
+                                    <h4><i class="{{ card.icon_class }}"></i> {{ card.title }}</h4>
+                                    <span class="category-badge">Order: {{ card.sort_order }}</span>
+                                </div>
+                                <p class="skill-description">{{ card.description }}</p>
+                                <form method="POST" action="{{ url_for('delete_service_card', card_id=card.id) }}"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Delete this service card?')">
+                                    <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-message">No service cards yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Hire Me Management -->
+    <div class="dashboard-section">
+        <h2>🎯 Why Hire Me Cards</h2>
+        <div class="section-grid">
+            <div class="form-card">
+                <h3>Add Why-Hire Card</h3>
+                <form method="POST" action="{{ url_for('add_why_item') }}" class="dashboard-form">
+                    <div class="form-group">
+                        <label for="why_title">Title *</label>
+                        <input type="text" id="why_title" name="title" required class="form-control" placeholder="e.g., Quick Learner">
+                    </div>
+                    <div class="form-group">
+                        <label for="why_icon_class">Icon Class</label>
+                        <input type="text" id="why_icon_class" name="icon_class" class="form-control" placeholder="e.g., fas fa-book">
+                    </div>
+                    <div class="form-group">
+                        <label for="why_sort_order">Order</label>
+                        <input type="number" id="why_sort_order" name="sort_order" value="0" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="why_description">Description *</label>
+                        <textarea id="why_description" name="description" rows="3" required class="form-control" placeholder="Why should they hire you?"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">➕ Add Why-Hire Card</button>
+                </form>
+            </div>
+
+            <div class="form-card">
+                <h3>Current Why-Hire Cards ({{ why_items|length }})</h3>
+                {% if why_items %}
+                    <div class="skills-list">
+                        {% for item in why_items %}
+                            <div class="skill-card">
+                                <div class="skill-header">
+                                    <h4><i class="{{ item.icon_class }}"></i> {{ item.title }}</h4>
+                                    <span class="category-badge">Order: {{ item.sort_order }}</span>
+                                </div>
+                                <p class="skill-description">{{ item.description }}</p>
+                                <form method="POST" action="{{ url_for('delete_why_item', item_id=item.id) }}"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Delete this why-hire card?')">
+                                    <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-message">No why-hire cards yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateProficiencyDisplay(slider) {
+    document.getElementById('proficiency-display').textContent = slider.value + '%';
+}
+</script>
+
+<style>
+.dashboard-wrapper {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 28px;
+    color: #333;
+}
+
+.dashboard-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.dashboard-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.stat {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 28px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.recent-messages {
+    margin: 15px 0;
+}
+
+.message-item {
+    padding: 10px;
+    border-left: 3px solid #007bff;
+    background: #f8f9fa;
+    margin-bottom: 10px;
+    border-radius: 3px;
+}
+
+.msg-from {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+}
+
+.msg-preview {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.msg-time {
+    color: #999;
+}
+
+.dashboard-section {
+    margin-bottom: 40px;
+}
+
+.dashboard-section h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.form-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-card h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.dashboard-form .form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.slider-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.skill-slider {
+    flex: 1;
+}
+
+#proficiency-display {
+    min-width: 40px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.skills-list, .projects-list {
+    display: grid;
+    gap: 12px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.skill-card, .project-card {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 5px;
+    border-left: 3px solid #007bff;
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.skill-header h4 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.category-badge {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.skill-description {
+    font-size: 12px;
+    color: #666;
+    margin: 5px 0;
+}
+
+.skill-proficiency {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    transition: width 0.3s;
+}
+
+.skill-proficiency span {
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 35px;
+}
+
+.project-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+}
+
+.project-card p {
+    margin: 5px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.project-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.empty-message {
+    color: #999;
+    text-align: center;
+    padding: 20px;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .dashboard-actions {
+        width: 100%;
+    }
+    
+    .section-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Check for new messages periodically and show notifications
+let lastMessageCount = {{ messages|length }};
+
+function checkForNewMessages() {
+    fetch('/api/new-messages')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const newCount = data.new_messages;
+                
+                // If there are new messages
+                if (newCount > lastMessageCount || (lastMessageCount === 0 && newCount > 0)) {
+                    // Play notification sound
+                    playNotificationSound();
+                    
+                    // Show visual alert
+                    showNotificationAlert(
+                        `🔔 New Message Received!`,
+                        `You have ${newCount} new message${newCount > 1 ? 's' : ''}`
+                    );
+                    
+                    // Update badge
+                    updateMessageBadge(newCount);
+                    
+                    lastMessageCount = newCount;
+                }
+            }
+        })
+        .catch(error => console.log('Message check error:', error));
+}
+
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 1000;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {
+        console.log('Audio notification not available');
+    }
+}
+
+function showNotificationAlert(title, message) {
+    const alert = document.createElement('div');
+    alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 9999;
+        font-weight: bold;
+        animation: slideIn 0.3s ease;
+        max-width: 400px;
+    `;
+    alert.innerHTML = `<div style="font-size: 16px; margin-bottom: 5px;">${title}</div><div style="font-size: 14px;">${message}</div>`;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => alert.remove(), 300);
+    }, 5000);
+}
+
+function updateMessageBadge(count) {
+    let badge = document.querySelector('.message-badge');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'message-badge';
+        badge.style.cssText = `
+            display: inline-block;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        `;
+        const messagesCard = document.querySelector('.dashboard-card h3');
+        if (messagesCard) {
+            messagesCard.appendChild(badge);
+        }
+    }
+    if (count > 0) {
+        badge.textContent = count > 9 ? '9+' : count;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Check for new messages every 5 seconds when on dashboard
+setInterval(checkForNewMessages, 5000);
+
+// Initial check
+checkForNewMessages();
+</script>
+{% endblock %}

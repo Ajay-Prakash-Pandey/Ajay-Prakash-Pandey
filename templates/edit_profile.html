@@ -1,0 +1,356 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Edit Profile - Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>📝 Edit Portfolio Profile</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" enctype="multipart/form-data" class="profile-form">
+        <!-- Hero Section -->
+        <div class="form-section">
+            <h3>Hero Section</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="hero_title">Hero Title</label>
+                    <input type="text" id="hero_title" name="hero_title" value="{{ portfolio.hero_title if portfolio else '' }}" 
+                           class="form-control" placeholder="e.g., Welcome to My Portfolio">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="hero_subtitle">Hero Subtitle</label>
+                    <input type="text" id="hero_subtitle" name="hero_subtitle" 
+                           value="{{ portfolio.hero_subtitle if portfolio else '' }}" 
+                           class="form-control" placeholder="e.g., Full Stack Developer">
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Section -->
+        <div class="form-section">
+            <h3>About Section</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="about_title">About Title</label>
+                    <input type="text" id="about_title" name="about_title" 
+                           value="{{ portfolio.about_title if portfolio else 'About Me' }}" 
+                           class="form-control" placeholder="About Me">
+        </div>
+        
+        <!-- About Section -->
+        <div class="form-section">
+            <h3>Profile Image</h3>
+            
+            {% if portfolio and portfolio.profile_image %}
+                <div style="margin-bottom: 15px;">
+                    <img src="{{ portfolio.profile_image }}" alt="Profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+                </div>
+            {% endif %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="profile_image">Upload Profile Image</label>
+                    <input type="file" id="profile_image" name="profile_image" accept=".jpg,.jpeg,.png,.gif,.webp" class="form-control">
+                    <small style="color: #666; margin-top: 5px; display: block;">Supported formats: JPG, PNG, GIF, WebP (Max recommended: 500x500px)</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Section -->
+        <div class="form-section">
+            <h3>About Section</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="about_title">About Title</label>
+                    <input type="text" id="about_title" name="about_title" 
+                           value="{{ portfolio.about_title if portfolio else 'About Me' }}" 
+                           class="form-control" placeholder="About Me">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="about_description">About Description</label>
+                    <textarea id="about_description" name="about_description" rows="6" 
+                              class="form-control" placeholder="Write about yourself...">{{ portfolio.about_description if portfolio else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resume -->
+        <div class="form-section">
+            <h3>📄 Resume Upload</h3>
+            
+            {% if portfolio and portfolio.resume_url %}
+                <p class="info-text" style="background: #d4edda; border: 1px solid #c3e6cb; padding: 12px; border-radius: 6px; color: #155724;">
+                    <i class="fas fa-check-circle"></i> Resume uploaded! Visitors can download from navbar and About page
+                </p>
+                <p style="margin-top: 10px; color: #666;">
+                    Current file: <strong>{{ portfolio.resume_url }}</strong>
+                </p>
+                <p style="margin-top: 10px;">
+                    <a href="{{ url_for('download_uploaded_resume') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-file-pdf"></i> Download Uploaded Resume
+                    </a>
+                    <a href="{{ url_for('download_resume') }}" class="btn btn-sm btn-secondary" style="margin-left: 8px;">
+                        <i class="fas fa-list"></i> Download Portfolio Resume
+                    </a>
+                </p>
+            {% else %}
+                <p class="info-text" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; color: #856404;">
+                    <i class="fas fa-exclamation-triangle"></i> No resume uploaded yet. Share your resume to help employers learn more about you.
+                </p>
+            {% endif %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="resume"><strong>Upload Your Resume (PDF)</strong></label>
+                    <input type="file" id="resume" name="resume" accept=".pdf" class="form-control" style="padding: 10px; border: 2px solid #667eea;">
+                    <small style="color: #666; margin-top: 8px; display: block;">
+                        ✓ PDF format only (Max: 10MB)<br>
+                        ✓ Your resume will be available for download from your portfolio<br>
+                        ✓ Update anytime to share your latest resume<br>
+                        💡 Pro tip: Highlight your projects, skills, and eagerness to learn!
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Information -->
+        <div class="form-section">
+            <h3>Contact Information</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" value="{{ portfolio.phone if portfolio else '' }}" 
+                           class="form-control" placeholder="+1234567890">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="whatsapp">WhatsApp Number</label>
+                    <input type="tel" id="whatsapp" name="whatsapp" value="{{ portfolio.whatsapp if portfolio else '' }}" 
+                           class="form-control" placeholder="+1234567890">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" value="{{ portfolio.location if portfolio else '' }}" 
+                           class="form-control" placeholder="City, Country">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Social Links -->
+        <div class="form-section">
+            <h3>Social Links</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="github">GitHub</label>
+                    <input type="url" id="github" name="github" value="{{ portfolio.github if portfolio else '' }}" 
+                           class="form-control" placeholder="https://github.com/username">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="linkedin">LinkedIn</label>
+                    <input type="url" id="linkedin" name="linkedin" value="{{ portfolio.linkedin if portfolio else '' }}" 
+                           class="form-control" placeholder="https://linkedin.com/in/username">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="twitter">Twitter</label>
+                    <input type="url" id="twitter" name="twitter" value="{{ portfolio.twitter if portfolio else '' }}" 
+                           class="form-control" placeholder="https://twitter.com/username">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">💾 Save Changes</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.dashboard-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.profile-form {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 18px;
+}
+
+.form-row {
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+textarea.form-control {
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+}
+
+.info-text {
+    background: #e7f3ff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    color: #0c5460;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.info-text a {
+    color: #0c5460;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.btn-lg {
+    padding: 15px 40px;
+    font-size: 16px;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+    .profile-form {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

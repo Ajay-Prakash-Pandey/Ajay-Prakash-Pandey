@@ -1,0 +1,344 @@
+/* ========================================
+   ABOUT PAGE - CONSISTENT UNIFIED LAYOUT
+   Same colors and styling as home page
+   ======================================== */
+
+:root {
+    --primary: #5a67d8;
+    --primary-dark: #4c51bf;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --bg-light: #f0f2f5;
+    --bg-white: #ffffff;
+    --header-bg: #f5f0ff;
+    --border-color: #e2e8f0;
+    --shadow: 0 2px 8px rgba(90, 103, 216, 0.08);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1 0 auto;
+}
+
+/* All sections - unified consistent styling */
+.intro,
+.resume,
+.education,
+.experience,
+.content-section {
+    padding: 2rem 1.5rem;
+    background: var(--bg-white);
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.intro:last-child,
+.resume:last-child,
+.education:last-child,
+.experience:last-child {
+    border-bottom: none;
+}
+
+/* Headings - consistent */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-dark);
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1.3rem;
+}
+
+/* Paragraphs */
+p {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+}
+
+p:last-child {
+    margin-bottom: 0;
+}
+
+/* ===== RESUME SECTION ===== */
+.resume {
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
+  background-color: white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  animation: slideInUp 1s ease-out forwards;
+  opacity: 0;
+}
+
+.resume h1 {
+  text-align: center;
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  background:  linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+}
+
+.content p {
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.9;
+  text-align: center;
+  max-width: 850px;
+  margin: 0 auto;
+  color: white;
+  letter-spacing: 0.3px;
+}
+
+/* ===== BUTTONS SECTION ===== */
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  flex-wrap: wrap;
+}
+
+.button {
+  flex: 0 1 auto;
+}
+
+.button a {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.button button {
+  padding: clamp(0.6rem, 1.5vw, 0.85rem) clamp(1rem, 2.5vw, 1.5rem);
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.button button:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3f92 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.button button:active {
+  transform: translateY(-1px);
+}
+
+/* ===== FOOTER SECTION ===== */
+.footer {
+  background-color: #1f2937;
+  color: white;
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem);
+  text-align: center;
+  animation: slideInUp 1.2s ease-out forwards;
+  opacity: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footer-content p {
+  margin: clamp(0.25rem, 1vw, 0.5rem) 0;
+  color: #9ca3af;
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+}
+
+.socialmedia {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: clamp(0.75rem, 1.5vw, 1rem);
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.social li {
+  list-style: none;
+}
+
+.social a {
+  color: #06b6d4;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social a:hover {
+  color: #f093fb;
+  transform: scale(1.1);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideInDown {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== RESPONSIVE DESIGN - TABLETS (1024px and down) ===== */
+@media (max-width: 1024px) {
+  .intro {
+    padding: clamp(2rem, 4vw, 3.5rem) clamp(1rem, 2.5vw, 1.5rem) clamp(1rem, 2.5vw, 1.5rem);
+  }
+  
+  .button button {
+    padding: clamp(0.5rem, 1.2vw, 0.75rem) clamp(0.75rem, 2vw, 1.25rem);
+    font-size: clamp(0.9rem, 1.8vw, 1rem);
+  }
+}
+
+/* ===== RESPONSIVE DESIGN - MOBILE (768px and down) ===== */
+@media (max-width: 768px) {
+  .intro {
+    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(0.75rem, 2vw, 1.5rem) clamp(1rem, 2vw, 1.5rem);
+  }
+  
+  .intro h1 {
+    font-size: clamp(1.3rem, 3.5vw, 2rem);
+  }
+  
+  .intro p {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+  }
+  
+  .resume {
+    padding: clamp(1rem, 2.5vw, 2rem) clamp(0.75rem, 2vw, 1.5rem);
+  }
+  
+  .resume h1 {
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+    margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+  }
+  
+  .content p {
+    font-size: clamp(0.9rem, 1.8vw, 1rem);
+    line-height: 1.8;
+  }
+  
+  .buttons {
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+    margin-top: clamp(1rem, 2.5vw, 1.5rem);
+    flex-direction: column;
+  }
+  
+  .button {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  
+  .button button {
+    width: 100%;
+    padding: clamp(0.5rem, 1.2vw, 0.75rem) clamp(0.5rem, 1.5vw, 1rem);
+    font-size: clamp(0.9rem, 1.8vw, 1rem);
+  }
+  
+  .footer {
+    padding: clamp(1rem, 2.5vw, 2rem) clamp(0.75rem, 2vw, 1.5rem);
+  }
+}
+
+/* ===== RESPONSIVE DESIGN - SMALL MOBILE (480px and down) ===== */
+@media (max-width: 480px) {
+  .intro {
+    padding: clamp(1.2rem, 2.5vw, 1.8rem) clamp(0.5rem, 1.5vw, 1rem) clamp(0.75rem, 1.5vw, 1rem);
+  }
+  
+  .intro h1 {
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    margin-bottom: clamp(0.4rem, 1vw, 0.75rem);
+  }
+  
+  .intro p {
+    font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+  }
+  
+  .resume {
+    padding: clamp(0.75rem, 2vw, 1.25rem) clamp(0.5rem, 1.5vw, 1rem);
+  }
+  
+  .resume h1 {
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    margin-bottom: clamp(0.6rem, 1.5vw, 1rem);
+  }
+  
+  .content p {
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+    line-height: 1.7;
+  }
+  
+  .buttons {
+    flex-direction: column;
+    gap: clamp(0.4rem, 1vw, 0.6rem);
+    margin-top: clamp(0.75rem, 1.5vw, 1rem);
+  }
+  
+  .button {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  
+  .button button {
+    width: 100%;
+    padding: clamp(0.5rem, 1vw, 0.65rem) clamp(0.5rem, 1vw, 0.75rem);
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+    border-radius: 6px;
+  }
+  
+  .footer {
+    padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(0.5rem, 1.5vw, 1rem);
+  }
+  
+  .socialmedia {
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+    margin-top: clamp(0.5rem, 1vw, 0.75rem);
+  }
+}

@@ -1,0 +1,1224 @@
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
+from flask_sqlalchemy import SQLAlchemy
+import os
+import re
+import io
+from werkzeug.security import generate_password_hash as wz_generate_password_hash, check_password_hash as wz_check_password_hash
+try:
+    from flask_bcrypt import Bcrypt
+except ImportError:
+    class Bcrypt:  # type: ignore[override]
+        """Fallback bcrypt-compatible wrapper using Werkzeug hashing."""
+        def __init__(self, app=None):
+            self.app = app
+
+        def generate_password_hash(self, password):
+            return wz_generate_password_hash(password).encode('utf-8')
+
+        def check_password_hash(self, pw_hash, password):
+            if isinstance(pw_hash, bytes):
+                pw_hash = pw_hash.decode('utf-8')
+            return wz_check_password_hash(str(pw_hash), password)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Load .env file if it exists
+except ImportError:
+    pass  # python-dotenv not installed, use environment variables only
+import secrets
+import smtplib
+from datetime import datetime, timedelta, timezone
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from functools import wraps
+from typing import Any, Callable, List, Optional
+
+# ===== FLASK APP SETUP =====
+app = Flask(__name__, static_folder='Static')
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+
+# Database Configuration
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site.db')
+database_url = os.environ.get('DATABASE_URL', '').strip()
+if database_url:
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+
+# ===== CONTEXT PROCESSOR - Make portfolio available to all templates =====
+@app.context_processor
+def inject_portfolio():
+    """Make portfolio data available to all templates"""
+    try:
+        portfolio = Portfolio.query.first()
+        return {'portfolio': portfolio}
+    except:
+        return {'portfolio': None}
+
+# ===== EMAIL CONFIGURATION (Free SMTP - Gmail) =====
+# Store these as environment variables in production
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'ajayprakashp59@gmail.com')
+# ⚠️ IMPORTANT: Replace with YOUR 16-CHARACTER GMAIL APP PASSWORD from https://myaccount.google.com/apppasswords
+SENDER_PASSWORD = os.environ.get('SENDER_PASSWORD', 'ztbj kqtu dbwy rfpa')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'ajayprakashp59@gmail.com')
+ADMIN_PHONE = os.environ.get('ADMIN_PHONE', '8881254553')  # For WhatsApp/Contact
+ADMIN_NAME = os.environ.get('ADMIN_NAME', 'Ajay Prakash')
+ADMIN_GITHUB = os.environ.get('ADMIN_GITHUB', 'https://github.com/Ajay-Prakash-Pandey')
+ADMIN_LINKEDIN = os.environ.get('ADMIN_LINKEDIN', 'https://www.linkedin.com/in/ajayprakashpandey')
+
+# ===== DATABASE MODELS =====
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Password reset fields
+    reset_token = db.Column(db.String(255), unique=True)
+    reset_token_expiry = db.Column(db.DateTime)
+
+class Portfolio(db.Model):
+    """Store dynamic portfolio content"""
+    id = db.Column(db.Integer, primary_key=True)
+    hero_title = db.Column(db.String(255), default="Welcome to My Portfolio")
+    hero_subtitle = db.Column(db.Text, default="Full Stack Developer | Creative Designer")
+    about_title = db.Column(db.String(255), default="About Me")
+    about_description = db.Column(db.Text, default="")
+    profile_image = db.Column(db.Text)  # Path to profile image
+    resume_url = db.Column(db.Text)  # Path to resume PDF
+    phone = db.Column(db.String(20))
+    whatsapp = db.Column(db.String(20))
+    location = db.Column(db.String(255))
+    github = db.Column(db.String(255))
+    linkedin = db.Column(db.String(255))
+    twitter = db.Column(db.String(255))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+class Skill(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    skill_name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)  # NEW: Skill description
+    proficiency = db.Column(db.Integer, nullable=False)  # 0-100
+    category = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    pname = db.Column(db.String(255), nullable=False)
+    projectlink = db.Column(db.Text)
+    projectDescripton = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+class Contact(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+class ServiceCard(db.Model):
+    """Homepage cards for 'What I Can Bring to Your Team'."""
+    id = db.Column(db.Integer, primary_key=True)
+    icon_class = db.Column(db.String(100), nullable=False, default='fas fa-star')
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    sort_order = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+class WhyHireItem(db.Model):
+    """Homepage cards for 'Why Hire a Fresher Like Me?'."""
+    id = db.Column(db.Integer, primary_key=True)
+    icon_class = db.Column(db.String(100), nullable=False, default='fas fa-check')
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    sort_order = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+# ===== DECORATORS =====
+
+def login_required(f: Callable[..., Any]) -> Callable[..., Any]:
+    @wraps(f)
+    def decorated_function(*args: Any, **kwargs: Any) -> Any:
+        if 'logged_in' not in session:
+            flash('Please log in first', 'error')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ===== EMAIL UTILITIES (FREE - SMTP) =====
+
+def send_email(to_email: str, subject: str, html_content: str) -> bool:
+    """Send email using Gmail SMTP (free)"""
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = SENDER_EMAIL
+        msg['To'] = to_email
+        
+        part = MIMEText(html_content, 'html')
+        msg.attach(part)
+        
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
+        
+        return True
+    except Exception as e:
+        print(f"Email error: {str(e)}")
+        return False
+
+def send_password_reset_email(email: str, reset_url: str) -> bool:
+    """Send password reset email"""
+    html = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif;">
+            <h2>Password Reset Request</h2>
+            <p>Click the link below to reset your password. This link will expire in 1 hour.</p>
+            <a href="{reset_url}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
+            <p>Or copy this link: {reset_url}</p>
+            <p>If you didn't request this, ignore this email.</p>
+        </body>
+    </html>
+    """
+    return send_email(email, "Password Reset Request", html)
+
+def send_contact_notification(name: str, email: str, message: str) -> bool:
+    """Send contact notification to admin with full details"""
+    html = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
+            <div style="background: white; max-width: 600px; margin: 0 auto; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
+                    <h2 style="margin: 0;">📬 NEW CONTACT MESSAGE</h2>
+                </div>
+                
+                <div style="padding: 30px;">
+                    <h3 style="color: #333; margin-bottom: 20px;">Message Details:</h3>
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: bold; color: #667eea; width: 30%;">📝 From:</td>
+                            <td style="padding: 12px; color: #333;">{name}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: bold; color: #667eea;">📧 Email:</td>
+                            <td style="padding: 12px; color: #333;"><a href="mailto:{email}" style="color: #667eea; text-decoration: none;">{email}</a></td>
+                        </tr>
+                    </table>
+                    
+                    <div style="background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #667eea;">
+                        <h4 style="margin-top: 0; color: #333;">💬 Message:</h4>
+                        <p style="color: #555; line-height: 1.6; white-space: pre-wrap;">{message}</p>
+                    </div>
+                    
+                    <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                        <p style="margin: 0; color: #2196F3; font-size: 14px;">
+                            ⏰ Received: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <a href="https://wa.me/918881254553" style="background: #25d366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-right: 10px;">💬 Reply on WhatsApp</a>
+                        <a href="mailto:{email}" style="background: #dd5100; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">📧 Reply via Email</a>
+                    </div>
+                </div>
+                
+                <div style="background: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #999;">
+                    <p style="margin: 0;">Sent by Portfolio Contact System</p>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+    return send_email(ADMIN_EMAIL, f"🔔 NEW CONTACT: {name}", html)
+
+def get_whatsapp_message_link(phone: str, message: str) -> str:
+    """Generate WhatsApp message link"""
+    import urllib.parse
+    return f"https://wa.me/{phone}?text={urllib.parse.quote(message)}"
+
+# ===== UTILITY FUNCTIONS =====
+
+def validate_email(email: str) -> bool:
+    """Validate email format"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def validate_password(password: str) -> tuple[bool, str]:
+    """Validate password strength"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters"
+    if not any(char.isupper() for char in password):
+        return False, "Password must contain uppercase letter"
+    if not any(char.isdigit() for char in password):
+        return False, "Password must contain digit"
+    return True, "Valid"
+
+def generate_reset_token() -> str:
+    """Generate unique reset token"""
+    return secrets.token_urlsafe(32)
+
+def result_to_list_of_tuples(results: List[Any], model_class: Any) -> List[Any]:
+    """Convert SQLAlchemy objects to tuples for template compatibility"""
+    output = []
+    if model_class == Project:
+        attributes = ['id', 'pname', 'projectlink', 'projectDescripton']
+    elif model_class == Contact:
+        attributes = ['id', 'name', 'email', 'message', 'created_at']
+    elif model_class == Skill:
+        attributes = ['id', 'skill_name', 'description', 'proficiency', 'category']
+    else:
+        return results
+    
+    for item in results:
+        row = [getattr(item, attr) for attr in attributes]
+        output.append(row)
+    return output
+
+def build_dynamic_resume_text(portfolio: Optional[Any]) -> str:
+    """Build a text resume using only saved project/profile data."""
+    profile_name = ADMIN_NAME.strip() if ADMIN_NAME else ""
+    profile_email = ADMIN_EMAIL.strip() if ADMIN_EMAIL else ""
+    profile_phone = (portfolio.phone.strip() if portfolio and portfolio.phone else ADMIN_PHONE.strip() if ADMIN_PHONE else "")
+    profile_location = (portfolio.location.strip() if portfolio and portfolio.location else "")
+    profile_summary = (portfolio.about_description.strip() if portfolio and portfolio.about_description else "")
+    profile_headline = (portfolio.hero_subtitle.strip() if portfolio and portfolio.hero_subtitle else "")
+    profile_github = (portfolio.github.strip() if portfolio and portfolio.github else ADMIN_GITHUB.strip() if ADMIN_GITHUB else "")
+    profile_linkedin = (portfolio.linkedin.strip() if portfolio and portfolio.linkedin else ADMIN_LINKEDIN.strip() if ADMIN_LINKEDIN else "")
+    profile_twitter = (portfolio.twitter.strip() if portfolio and portfolio.twitter else "")
+
+    skills_data = Skill.query.order_by(Skill.category, Skill.skill_name).all()
+    projects_data = Project.query.order_by(Project.created_at.desc()).all()
+
+    lines: List[str] = []
+
+    if profile_name:
+        lines.append(profile_name)
+    if profile_headline:
+        lines.append(profile_headline)
+
+    contact_lines: List[str] = []
+    if profile_email:
+        contact_lines.append(f"Email: {profile_email}")
+    if profile_phone:
+        contact_lines.append(f"Phone: {profile_phone}")
+    if profile_location:
+        contact_lines.append(f"Location: {profile_location}")
+    if profile_github:
+        contact_lines.append(f"GitHub: {profile_github}")
+    if profile_linkedin:
+        contact_lines.append(f"LinkedIn: {profile_linkedin}")
+    if profile_twitter:
+        contact_lines.append(f"Twitter: {profile_twitter}")
+
+    if contact_lines:
+        if lines:
+            lines.append("")
+        lines.append("CONTACT")
+        lines.extend(contact_lines)
+
+    if profile_summary:
+        if lines:
+            lines.append("")
+        lines.append("PROFESSIONAL SUMMARY")
+        lines.append(profile_summary)
+
+    if skills_data:
+        if lines:
+            lines.append("")
+        lines.append("SKILLS")
+        for skill in skills_data:
+            desc = f" - {skill.description.strip()}" if skill.description and skill.description.strip() else ""
+            category = skill.category.strip() if skill.category else ""
+            lines.append(f"- {skill.skill_name} ({category}, {skill.proficiency}%){desc}")
+
+    if projects_data:
+        if lines:
+            lines.append("")
+        lines.append("PROJECTS")
+        for project in projects_data:
+            lines.append(f"- {project.pname}")
+            if project.projectDescripton and project.projectDescripton.strip():
+                lines.append(f"  Description: {project.projectDescripton.strip()}")
+            if project.projectlink and project.projectlink.strip():
+                lines.append(f"  Link: {project.projectlink.strip()}")
+
+    if not lines:
+        lines.append("No portfolio data found.")
+
+    return "\n".join(lines)
+
+# ===== DATABASE INITIALIZATION =====
+
+def init_db(interactive_admin: bool = False):
+    """Initialize database and seed defaults. Optional interactive admin setup."""
+    try:
+        with app.app_context():
+            db.create_all()
+            
+            # Create default portfolio entry if none exists
+            if Portfolio.query.count() == 0:
+                default_portfolio = Portfolio()
+                db.session.add(default_portfolio)
+                db.session.commit()
+
+            # Seed homepage service cards once
+            if ServiceCard.query.count() == 0:
+                default_services = [
+                    ServiceCard(icon_class='fas fa-laptop-code', title='Web Development',
+                                description='Build responsive, modern web applications from scratch using HTML, CSS, JavaScript, Flask, and best practices.',
+                                sort_order=1),
+                    ServiceCard(icon_class='fas fa-mobile-alt', title='Responsive Design',
+                                description='Mobile-first, cross-browser compatible designs that deliver seamless experiences across all devices and screen sizes.',
+                                sort_order=2),
+                    ServiceCard(icon_class='fas fa-database', title='Database Design',
+                                description='Efficient database architecture, optimization, and implementation using SQL and modern database technologies.',
+                                sort_order=3),
+                    ServiceCard(icon_class='fas fa-cogs', title='Software Systems',
+                                description='Build robust server-side solutions with Python, Flask, and scalable architecture for enterprise-level applications.',
+                                sort_order=4),
+                    ServiceCard(icon_class='fas fa-shield-alt', title='Security & Quality',
+                                description='Code security best practices, testing, and quality assurance to ensure reliable and maintainable applications.',
+                                sort_order=5),
+                ]
+                db.session.add_all(default_services)
+                db.session.commit()
+
+            # Seed 'why hire me' cards once
+            if WhyHireItem.query.count() == 0:
+                default_why_items = [
+                    WhyHireItem(icon_class='fas fa-fire', title='Eager & Passionate',
+                                description='Highly motivated to learn, grow, and contribute. I bring fresh perspectives and enthusiasm to every project.',
+                                sort_order=1),
+                    WhyHireItem(icon_class='fas fa-book', title='Quick Learner',
+                                description='Strong foundation in core concepts, adaptable to new technologies, and committed to continuous improvement.',
+                                sort_order=2),
+                    WhyHireItem(icon_class='fas fa-users', title='Team Player',
+                                description='Collaborative mindset, excellent communication skills, and willing to learn from experienced mentors.',
+                                sort_order=3),
+                ]
+                db.session.add_all(default_why_items)
+                db.session.commit()
+            
+            # Create admin only in explicit interactive mode (local dev)
+            if interactive_admin and User.query.count() == 0:
+                print("\n--- Initial Admin Setup ---")
+                username = input("Enter admin username: ")
+                email = input("Enter admin email: ")
+                
+                while True:
+                    password = input("Enter admin password (min 8 chars, 1 uppercase, 1 digit): ")
+                    is_valid, msg = validate_password(password)
+                    if is_valid:
+                        break
+                    print(f"Invalid: {msg}")
+                
+                hashed = bcrypt.generate_password_hash(password).decode('utf-8')
+                user = User(username=username, email=email, password=hashed)
+                db.session.add(user)
+                db.session.commit()
+                print(f"Admin '{username}' created successfully.")
+            
+            print("Database initialized successfully.")
+        return True
+    except Exception as e:
+        print(f"Database error: {e}")
+        return False
+
+# Ensure tables/default content exist when app is loaded by gunicorn.
+init_db(interactive_admin=False)
+
+# ===== ROUTES: PUBLIC =====
+
+@app.route("/")
+def index():
+    try:
+        portfolio = Portfolio.query.first()
+        skills = Skill.query.order_by(Skill.category.asc(), Skill.skill_name.asc()).all()
+        service_cards = ServiceCard.query.order_by(ServiceCard.sort_order.asc(), ServiceCard.id.asc()).all()
+        why_items = WhyHireItem.query.order_by(WhyHireItem.sort_order.asc(), WhyHireItem.id.asc()).all()
+        return render_template('index.html', portfolio=portfolio, skills=skills, service_cards=service_cards, why_items=why_items)
+    except:
+        return render_template('index.html', portfolio=None, skills=[], service_cards=[], why_items=[])
+
+@app.route("/about")
+def about():
+    try:
+        portfolio = Portfolio.query.first()
+        return render_template('AboutME.html', portfolio=portfolio)
+    except:
+        return render_template('AboutME.html', portfolio=None)
+
+@app.route("/projects")
+def projects():
+    try:
+        with app.app_context():
+            projects_data = Project.query.all()
+            portfolio = Portfolio.query.first()
+            compatible = result_to_list_of_tuples(projects_data, Project)
+        return render_template('projects.html', projects=compatible, portfolio=portfolio)
+    except Exception as e:
+        flash(f'Error loading projects: {str(e)}', 'error')
+        return render_template('projects.html', projects=[], portfolio=None)
+
+@app.route("/skills")
+def skills():
+    """Display all skills from database"""
+    try:
+        with app.app_context():
+            skills_data = Skill.query.order_by(Skill.category, Skill.skill_name).all()
+            portfolio = Portfolio.query.first()
+        return render_template('Skills.html', skills=skills_data, portfolio=portfolio)
+    except Exception as e:
+        flash(f'Error loading skills: {str(e)}', 'error')
+        return render_template('Skills.html', skills=[], portfolio=None)
+
+@app.route("/contact")
+def contact():
+    portfolio = Portfolio.query.first()
+    return render_template('contact.html', portfolio=portfolio)
+
+@app.route("/contact", methods=['POST'])
+def contact_post():
+    """Handle contact form submission with email and WhatsApp alerts"""
+    try:
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        message = request.form.get('message', '').strip()
+        
+        if not all([name, email, message]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('contact'))
+        
+        if not validate_email(email):
+            flash('Invalid email address', 'error')
+            return redirect(url_for('contact'))
+        
+        if len(message) < 10:
+            flash('Message must be at least 10 characters', 'error')
+            return redirect(url_for('contact'))
+        
+        # Save to database
+        with app.app_context():
+            contact_msg = Contact(name=name, email=email, message=message)
+            db.session.add(contact_msg)
+            db.session.commit()
+        
+        # Send EMAIL ALERT to admin
+        email_sent = send_contact_notification(name, email, message)
+        
+        # Send WhatsApp ALERT link to admin
+        import urllib.parse
+        wa_phone = ADMIN_PHONE.replace('+', '').replace(' ', '').replace('-', '')
+        # WhatsApp message for admin with full details
+        wa_admin_message = f"📬 NEW MESSAGE:\n\nFrom: {name}\nEmail: {email}\n\nMessage:\n{message}"
+        wa_admin_encoded = urllib.parse.quote(wa_admin_message)
+        wa_admin_link = f"https://wa.me/{wa_phone}?text={wa_admin_encoded}"
+        
+        # Success message with full details
+        if email_sent:
+            success_msg = f'✅ Message sent! Admin notified via Email & WhatsApp'
+            flash(success_msg, 'success')
+        else:
+            success_msg = f'✅ Message received! You will be contacted soon.'
+            flash(success_msg, 'success')
+        
+        return redirect(url_for('contact'))
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+        return redirect(url_for('contact'))
+
+# ===== ROUTES: AUTHENTICATION =====
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    """User registration"""
+    if request.method == 'POST':
+        try:
+            username = request.form.get('uname', '').strip()
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '')
+            confirm_pwd = request.form.get('confirm_pwd', '')
+            
+            # Validation
+            if not all([username, email, password, confirm_pwd]):
+                flash('All fields required', 'error')
+                return redirect(url_for('register'))
+            
+            if len(username) < 3:
+                flash('Username must be at least 3 characters', 'error')
+                return redirect(url_for('register'))
+            
+            if not validate_email(email):
+                flash('Invalid email format', 'error')
+                return redirect(url_for('register'))
+            
+            is_valid, msg = validate_password(password)
+            if not is_valid:
+                flash(msg, 'error')
+                return redirect(url_for('register'))
+            
+            if password != confirm_pwd:
+                flash('Passwords do not match', 'error')
+                return redirect(url_for('register'))
+            
+            # Check if user exists
+            with app.app_context():
+                if User.query.filter_by(username=username).first():
+                    flash('Username already exists', 'error')
+                    return redirect(url_for('register'))
+                if User.query.filter_by(email=email).first():
+                    flash('Email already registered', 'error')
+                    return redirect(url_for('register'))
+                
+                # Create user
+                hashed = bcrypt.generate_password_hash(password).decode('utf-8')
+                user = User(username=username, email=email, password=hashed)
+                db.session.add(user)
+                db.session.commit()
+            
+            flash('Registration successful! Please login.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            flash(f'Registration error: {str(e)}', 'error')
+            return redirect(url_for('register'))
+    
+    return render_template('registration.html')
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    """User login - only admin can access"""
+    if request.method == 'POST':
+        try:
+            username = request.form.get('uname', '').strip()
+            password = request.form.get('password', '')
+            
+            if not all([username, password]):
+                flash('Username and password required', 'error')
+                return redirect(url_for('login'))
+            
+            with app.app_context():
+                user = User.query.filter_by(username=username).first()
+            
+            # Check username and password
+            if user and bcrypt.check_password_hash(user.password, password):
+                # Only allow admin user with correct email
+                if user.email == 'ajayprakashp59@gmail.com':
+                    session['logged_in'] = True
+                    session['username'] = username
+                    flash('Login successful!', 'success')
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash('Access denied. Only admin can login.', 'error')
+                    return redirect(url_for('login'))
+            
+            flash('Invalid username or password', 'error')
+            return redirect(url_for('login'))
+        except Exception as e:
+            flash(f'Login error: {str(e)}', 'error')
+            return redirect(url_for('login'))
+    
+    return render_template('login.html')
+
+@app.route("/change-password", methods=['GET', 'POST'])
+def change_password():
+    """Change admin password by verifying email"""
+    if request.method == 'POST':
+        try:
+            email = request.form.get('email', '').strip()
+            new_password = request.form.get('new_password', '').strip()
+            confirm_password = request.form.get('confirm_password', '').strip()
+            
+            # Verify admin email
+            if email != 'ajayprakashp59@gmail.com':
+                flash('Invalid email. Only the registered admin email can change password.', 'error')
+                return redirect(url_for('change_password'))
+            
+            if not new_password or not confirm_password:
+                flash('Password fields cannot be empty', 'error')
+                return redirect(url_for('change_password'))
+            
+            if new_password != confirm_password:
+                flash('Passwords do not match', 'error')
+                return redirect(url_for('change_password'))
+            
+            if len(new_password) < 6:
+                flash('Password must be at least 6 characters long', 'error')
+                return redirect(url_for('change_password'))
+            
+            with app.app_context():
+                user = User.query.filter_by(email=email).first()
+                if user:
+                    # Hash and update password
+                    hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                    user.password = hashed_password
+                    db.session.commit()
+                    flash('Password changed successfully! Please login with your new password.', 'success')
+                    return redirect(url_for('login'))
+                else:
+                    flash('No user found with this email', 'error')
+                    return redirect(url_for('change_password'))
+        except Exception as e:
+            flash(f'Error changing password: {str(e)}', 'error')
+            return redirect(url_for('change_password'))
+    
+    return render_template('change_password.html')
+
+@app.route("/forgot-password", methods=['GET', 'POST'])
+def forgot_password():
+    """Request password reset"""
+    if request.method == 'POST':
+        try:
+            email = request.form.get('email', '').strip()
+            
+            if not validate_email(email):
+                flash('Invalid email format', 'error')
+                return redirect(url_for('forgot_password'))
+            
+            with app.app_context():
+                user = User.query.filter_by(email=email).first()
+                
+                if user:
+                    # Generate reset token
+                    reset_token = generate_reset_token()
+                    user.reset_token = reset_token
+                    user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+                    db.session.commit()
+                    
+                    # Send reset email
+                    reset_url = url_for('reset_password', token=reset_token, _external=True)
+                    send_password_reset_email(email, reset_url)
+            
+            # Always show this message for security (don't reveal if email exists)
+            flash('If an account exists, you will receive a password reset email.', 'info')
+            return redirect(url_for('login'))
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('forgot_password'))
+    
+    return render_template('forgot_password.html')
+
+@app.route("/reset-password/<token>", methods=['GET', 'POST'])
+def reset_password(token: str):
+    """Reset password with token"""
+    try:
+        with app.app_context():
+            user = User.query.filter_by(reset_token=token).first()
+            
+            if not user or datetime.now(timezone.utc) > user.reset_token_expiry:
+                flash('Invalid or expired reset link', 'error')
+                return redirect(url_for('login'))
+        
+        if request.method == 'POST':
+            try:
+                password = request.form.get('password', '')
+                confirm_pwd = request.form.get('confirm_pwd', '')
+                
+                is_valid, msg = validate_password(password)
+                if not is_valid:
+                    flash(msg, 'error')
+                    return redirect(url_for('reset_password', token=token))
+                
+                if password != confirm_pwd:
+                    flash('Passwords do not match', 'error')
+                    return redirect(url_for('reset_password', token=token))
+                
+                with app.app_context():
+                    user = User.query.filter_by(reset_token=token).first()
+                    hashed = bcrypt.generate_password_hash(password).decode('utf-8')
+                    user.password = hashed
+                    user.reset_token = None
+                    user.reset_token_expiry = None
+                    db.session.commit()
+                
+                flash('Password reset successful! Please login.', 'success')
+                return redirect(url_for('login'))
+            except Exception as e:
+                flash(f'Error: {str(e)}', 'error')
+                return redirect(url_for('reset_password', token=token))
+        
+        return render_template('reset_password.html', token=token)
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+        return redirect(url_for('login'))
+
+@app.route("/logout")
+def logout():
+    """Logout user"""
+    session.pop('logged_in', None)
+    session.pop('username', None)
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for('login'))
+
+# ===== ROUTES: DASHBOARD (PROTECTED) =====
+
+@login_required
+@app.route("/dashboard")
+def dashboard():
+    """Admin dashboard"""
+    try:
+        with app.app_context():
+            portfolio = Portfolio.query.first()
+            projects = Project.query.all()
+            skills = Skill.query.all()
+            messages = Contact.query.order_by(Contact.created_at.desc()).limit(5).all()
+            service_cards = ServiceCard.query.order_by(ServiceCard.sort_order.asc(), ServiceCard.id.asc()).all()
+            why_items = WhyHireItem.query.order_by(WhyHireItem.sort_order.asc(), WhyHireItem.id.asc()).all()
+        
+        return render_template('dashboard.html', 
+                             portfolio=portfolio, 
+                             projects=projects,
+                             skills=skills,
+                             messages=messages,
+                             service_cards=service_cards,
+                             why_items=why_items)
+    except Exception as e:
+        flash(f'Dashboard error: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+@login_required
+@app.route("/dashboard/profile", methods=['GET', 'POST'])
+def edit_profile():
+    """Edit portfolio profile"""
+    if request.method == 'POST':
+        try:
+            with app.app_context():
+                portfolio = Portfolio.query.first() or Portfolio()
+                
+                portfolio.hero_title = request.form.get('hero_title', '')
+                portfolio.hero_subtitle = request.form.get('hero_subtitle', '')
+                portfolio.about_title = request.form.get('about_title', '')
+                portfolio.about_description = request.form.get('about_description', '')
+                portfolio.phone = request.form.get('phone', '')
+                portfolio.whatsapp = request.form.get('whatsapp', '')
+                portfolio.location = request.form.get('location', '')
+                portfolio.github = request.form.get('github', '')
+                portfolio.linkedin = request.form.get('linkedin', '')
+                portfolio.twitter = request.form.get('twitter', '')
+                
+                # Handle profile image upload
+                if 'profile_image' in request.files:
+                    file = request.files['profile_image']
+                    if file and file.filename and file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                        filename = f"profile_{datetime.utcnow().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}"
+                        filepath = os.path.join(app.static_folder, 'images', filename)
+                        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                        file.save(filepath)
+                        portfolio.profile_image = f"/Static/images/{filename}"
+                
+                # Handle resume upload
+                if 'resume' in request.files:
+                    file = request.files['resume']
+                    if file and file.filename.endswith('.pdf'):
+                        filename = f"resume_{datetime.utcnow().timestamp()}.pdf"
+                        filepath = os.path.join(app.static_folder, 'resumes', filename)
+                        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                        file.save(filepath)
+                        portfolio.resume_url = f"/Static/resumes/{filename}"
+                
+                db.session.add(portfolio)
+                db.session.commit()
+            
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            flash(f'Error updating profile: {str(e)}', 'error')
+            return redirect(url_for('edit_profile'))
+    
+    try:
+        portfolio = Portfolio.query.first()
+        return render_template('edit_profile.html', portfolio=portfolio)
+    except:
+        return render_template('edit_profile.html', portfolio=None)
+
+# ===== ROUTES: PROJECTS =====
+
+@login_required
+@app.route("/add_project", methods=['POST'])
+def add_project():
+    """Add new project"""
+    try:
+        pname = request.form.get('pname', '').strip()
+        projectlink = request.form.get('projectlink', '').strip()
+        description = request.form.get('projectDescripton', '').strip()
+        
+        if not pname:
+            flash('Project name required', 'error')
+            return redirect(url_for('dashboard'))
+        
+        with app.app_context():
+            project = Project(pname=pname, projectlink=projectlink, projectDescripton=description)
+            db.session.add(project)
+            db.session.commit()
+        
+        flash('Project added!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+@login_required
+@app.route("/delete_project/<int:project_id>", methods=['GET', 'POST'])
+def delete_project(project_id: int):
+    """Delete project"""
+    try:
+        with app.app_context():
+            project = Project.query.get(project_id)
+            if project:
+                db.session.delete(project)
+                db.session.commit()
+                flash('Project deleted!', 'success')
+            else:
+                flash('Project not found', 'error')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+# ===== ROUTES: HOMEPAGE CONTENT =====
+
+@login_required
+@app.route("/add_service_card", methods=['POST'])
+def add_service_card():
+    """Add homepage service card."""
+    try:
+        title = request.form.get('title', '').strip()
+        icon_class = request.form.get('icon_class', 'fas fa-star').strip() or 'fas fa-star'
+        description = request.form.get('description', '').strip()
+        sort_order = int(request.form.get('sort_order', 0))
+
+        if not title or not description:
+            flash('Service title and description are required', 'error')
+            return redirect(url_for('dashboard'))
+
+        with app.app_context():
+            card = ServiceCard(
+                icon_class=icon_class,
+                title=title,
+                description=description,
+                sort_order=sort_order
+            )
+            db.session.add(card)
+            db.session.commit()
+
+        flash('Service card added!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    return redirect(url_for('dashboard'))
+
+@login_required
+@app.route("/delete_service_card/<int:card_id>", methods=['POST'])
+def delete_service_card(card_id: int):
+    """Delete homepage service card."""
+    try:
+        with app.app_context():
+            card = ServiceCard.query.get(card_id)
+            if card:
+                db.session.delete(card)
+                db.session.commit()
+                flash('Service card deleted!', 'success')
+            else:
+                flash('Service card not found', 'error')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    return redirect(url_for('dashboard'))
+
+@login_required
+@app.route("/add_why_item", methods=['POST'])
+def add_why_item():
+    """Add 'why hire me' card."""
+    try:
+        title = request.form.get('title', '').strip()
+        icon_class = request.form.get('icon_class', 'fas fa-check').strip() or 'fas fa-check'
+        description = request.form.get('description', '').strip()
+        sort_order = int(request.form.get('sort_order', 0))
+
+        if not title or not description:
+            flash('Why-hire title and description are required', 'error')
+            return redirect(url_for('dashboard'))
+
+        with app.app_context():
+            item = WhyHireItem(
+                icon_class=icon_class,
+                title=title,
+                description=description,
+                sort_order=sort_order
+            )
+            db.session.add(item)
+            db.session.commit()
+
+        flash('Why-hire item added!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    return redirect(url_for('dashboard'))
+
+@login_required
+@app.route("/delete_why_item/<int:item_id>", methods=['POST'])
+def delete_why_item(item_id: int):
+    """Delete 'why hire me' card."""
+    try:
+        with app.app_context():
+            item = WhyHireItem.query.get(item_id)
+            if item:
+                db.session.delete(item)
+                db.session.commit()
+                flash('Why-hire item deleted!', 'success')
+            else:
+                flash('Why-hire item not found', 'error')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    return redirect(url_for('dashboard'))
+
+# ===== ROUTES: SKILLS =====
+
+@login_required
+@app.route("/add_skill", methods=['POST'])
+def add_skill():
+    """Add new skill"""
+    try:
+        skill_name = request.form.get('skill_name', '').strip()
+        description = request.form.get('description', '').strip()  # NEW
+        proficiency = int(request.form.get('proficiency', 50))
+        category = request.form.get('category', 'Other').strip()
+        
+        if not skill_name:
+            flash('Skill name required', 'error')
+            return redirect(url_for('dashboard'))
+        
+        if proficiency < 0 or proficiency > 100:
+            flash('Proficiency must be 0-100', 'error')
+            return redirect(url_for('dashboard'))
+        
+        with app.app_context():
+            # Check if skill exists
+            if Skill.query.filter_by(skill_name=skill_name).first():
+                flash('Skill already exists', 'error')
+                return redirect(url_for('dashboard'))
+            
+            skill = Skill(skill_name=skill_name, description=description, 
+                         proficiency=proficiency, category=category)
+            db.session.add(skill)
+            db.session.commit()
+        
+        flash('Skill added!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+@login_required
+@app.route("/edit_skill/<int:skill_id>", methods=['POST'])
+def edit_skill(skill_id: int):
+    """Edit existing skill"""
+    try:
+        with app.app_context():
+            skill = Skill.query.get(skill_id)
+            if not skill:
+                flash('Skill not found', 'error')
+                return redirect(url_for('dashboard'))
+            
+            skill.skill_name = request.form.get('skill_name', '').strip()
+            skill.description = request.form.get('description', '').strip()
+            skill.proficiency = int(request.form.get('proficiency', skill.proficiency))
+            skill.category = request.form.get('category', skill.category).strip()
+            
+            db.session.commit()
+        
+        flash('Skill updated!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+@login_required
+@app.route("/delete_skill/<int:skill_id>", methods=['GET', 'POST'])
+def delete_skill(skill_id: int):
+    """Delete skill"""
+    try:
+        with app.app_context():
+            skill = Skill.query.get(skill_id)
+            if skill:
+                db.session.delete(skill)
+                db.session.commit()
+                flash('Skill deleted!', 'success')
+            else:
+                flash('Skill not found', 'error')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+# ===== ROUTES: MESSAGES =====
+
+@login_required
+@app.route("/messages")
+def messages():
+    """View all contact messages"""
+    try:
+        with app.app_context():
+            msgs = Contact.query.order_by(Contact.created_at.desc()).all()
+        return render_template('message.html', messages=msgs)
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+        return redirect(url_for('dashboard'))
+
+@login_required
+@app.route("/delete_message/<int:msg_id>", methods=['GET', 'POST'])
+def delete_message(msg_id: int):
+    """Delete contact message"""
+    try:
+        with app.app_context():
+            msg = Contact.query.get(msg_id)
+            if msg:
+                db.session.delete(msg)
+                db.session.commit()
+                flash('Message deleted!', 'success')
+            else:
+                flash('Message not found', 'error')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('messages'))
+
+# ===== API ENDPOINTS =====
+
+@app.route("/api/skills")
+def api_skills():
+    """Get all skills as JSON"""
+    try:
+        with app.app_context():
+            skills = Skill.query.order_by(Skill.category).all()
+            return jsonify({
+                'success': True,
+                'skills': [{
+                    'id': s.id,
+                    'name': s.skill_name,
+                    'description': s.description,
+                    'proficiency': s.proficiency,
+                    'category': s.category
+                } for s in skills]
+            }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route("/api/portfolio")
+def api_portfolio():
+    """Get portfolio data as JSON"""
+    try:
+        with app.app_context():
+            portfolio = Portfolio.query.first()
+            return jsonify({
+                'success': True,
+                'portfolio': {
+                    'hero_title': portfolio.hero_title if portfolio else '',
+                    'hero_subtitle': portfolio.hero_subtitle if portfolio else '',
+                    'about_description': portfolio.about_description if portfolio else '',
+                    'resume_url': portfolio.resume_url if portfolio else ''
+                }
+            }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route("/api/new-messages", methods=['GET'])
+@login_required
+def get_new_messages():
+    """API endpoint to check for new messages"""
+    try:
+        # Get all messages (ordered by newest first)
+        all_messages = Contact.query.order_by(Contact.created_at.desc()).all()
+        
+        total_count = len(all_messages)
+        
+        # Get messages from last hour for "new" badge
+        from datetime import datetime, timedelta, timezone
+        one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+        recent_messages = Contact.query.filter(Contact.created_at > one_hour_ago).all()
+        new_count = len(recent_messages)
+        
+        return jsonify({
+            'success': True,
+            'total_messages': total_count,
+            'new_messages': new_count,
+            'recent': [
+                {
+                    'id': msg.id,
+                    'name': msg.name,
+                    'email': msg.email,
+                    'message': msg.message[:50] + '...' if len(msg.message) > 50 else msg.message,
+                    'created_at': msg.created_at.strftime('%Y-%m-%d %H:%M:%S') if msg.created_at else ''
+                }
+                for msg in recent_messages[:5]
+            ]
+        }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ===== RESUME DOWNLOAD =====
+
+@app.route('/download-uploaded-resume')
+def download_uploaded_resume():
+    """Download uploaded resume PDF from dashboard profile."""
+    try:
+        portfolio = Portfolio.query.first()
+        if not portfolio or not portfolio.resume_url:
+            flash('No uploaded resume found. Please upload one in Edit Profile.', 'warning')
+            return redirect(url_for('edit_profile'))
+
+        resume_path = os.path.join(os.path.dirname(__file__), portfolio.resume_url.lstrip('/'))
+        if not os.path.exists(resume_path):
+            flash('Uploaded resume file is missing. Please upload again.', 'warning')
+            return redirect(url_for('edit_profile'))
+
+        return send_file(
+            resume_path,
+            as_attachment=True,
+            download_name='Resume.pdf',
+            mimetype='application/pdf'
+        )
+    except Exception as e:
+        flash(f'Error downloading uploaded resume: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/download-resume')
+def download_resume():
+    """Download a live resume generated from portfolio data."""
+    try:
+        portfolio = Portfolio.query.first()
+        resume_text = build_dynamic_resume_text(portfolio)
+        resume_bytes = io.BytesIO(resume_text.encode('utf-8'))
+        return send_file(
+            resume_bytes,
+            as_attachment=True,
+            download_name='Ajay_Prakash_Resume.txt',
+            mimetype='text/plain; charset=utf-8'
+        )
+    except Exception as e:
+        flash(f'Error downloading resume: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+# ===== ERROR HANDLERS =====
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('500.html'), 500
+
+# ===== MAIN =====
+
+if __name__ == "__main__":
+    if init_db(interactive_admin=True):
+        print("Database ready!")
+    else:
+        print("Database initialization failed")
+    
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=False)

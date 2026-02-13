@@ -1,0 +1,258 @@
+/* ========================================
+   DISPLAY PAGE - CONSISTENT UNIFIED LAYOUT
+   Same colors and styling as home page
+   ======================================== */
+
+:root {
+    --primary: #5a67d8;
+    --primary-dark: #4c51bf;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --bg-light: #f0f2f5;
+    --bg-white: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1 0 auto;
+}
+
+/* Projects container */
+.projects-container,
+.content-section {
+    padding: 2rem 1.5rem;
+    background: var(--bg-white);
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.projects-container:last-child {
+    border-bottom: none;
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid var(--border-color);
+}
+
+thead {
+    background: var(--bg-light);
+}
+
+th {
+    color: var(--text-dark);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+/* Projects Container */
+.projects-container {
+  padding: 20px;
+}
+
+/* Table Container Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  animation: fadeTableIn 1.5s ease forwards;
+  opacity: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+@keyframes fadeTableIn {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Table Headings */
+th {
+  background-color: #007bff;
+  color: white;
+  font-size: 1.2rem;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+th a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+th a:hover {
+  color: #ffd700;
+  transform: translateX(2px);
+}
+
+/* Table Rows Styling & Hover */
+td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  transition: background-color 0.3s ease;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #e3f2fd;
+}
+
+/* Link Styling */
+td a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+}
+
+td a:hover {
+  color: #0056b3;
+  transform: scale(1.05);
+  text-decoration: underline;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 480px) {
+  .projects-container {
+    padding: 10px;
+  }
+
+  table {
+    font-size: 0.8rem;
+    margin: 20px 0;
+  }
+
+  th, td {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+
+  th {
+    font-size: 0.95rem;
+  }
+
+  /* Stack table on mobile */
+  thead {
+    display: none;
+  }
+
+  tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  td {
+    display: block;
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  td:last-child {
+    border-bottom: none;
+  }
+
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 6px;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  tr:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .projects-container {
+    padding: 15px;
+  }
+
+  table {
+    font-size: 0.95rem;
+    margin: 40px 0;
+  }
+
+  th, td {
+    padding: 10px;
+  }
+
+  th {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .projects-container {
+    padding: 30px;
+  }
+
+  table {
+    margin: 50px auto;
+    width: 95%;
+  }
+
+  th, td {
+    padding: 12px;
+  }
+}
+
+@media screen and (min-width: 1025px) {
+  .projects-container {
+    padding: 40px;
+  }
+
+  table {
+    margin: 60px auto;
+    width: 90%;
+    max-width: 1200px;
+  }
+
+  th, td {
+    padding: 15px;
+  }
+}

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Professional Portfolio - Full Stack Developer with expertise in web development, backend systems, and enterprise solutions.">
+  <title>About - Professional Portfolio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/master.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/responsive.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Components/Css/navbar.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/aboutme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='Components/Css/footer_responsive.css') }}">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #f9fafb;
+    }
+    
+    .main-content {
+      flex: 1 0 auto;
+    }
+    
+    .page-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 3vw, 2rem);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .hero-section-about {
+      background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    
+    .about-intro { font-size: 1.15rem; line-height: 1.8; margin: 30px 0; max-width: 900px; margin-left: auto; margin-right: auto; }
+    
+    .expertise-section { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin: 30px 0; }
+    
+    .expertise-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px; }
+    
+    .expertise-item { padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: center; border-left: 3px solid #1a365d; }
+    
+    .expertise-item strong { color: #1a365d; display: block; margin-bottom: 5px; }
+    
+    .expertise-item p { color: #718096; font-size: 0.9rem; margin: 0; }
+    
+    .timeline { position: relative; padding: 20px 0; }
+    
+    .timeline-item { margin-bottom: 40px; padding-left: 40px; position: relative; }
+    
+    .timeline-item:before { content: ''; position: absolute; left: 0; top: 0; width: 20px; height: 20px; background: #1a365d; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 3px #1a365d; }
+    
+    .timeline-item:after { content: ''; position: absolute; left: 8px; top: 20px; width: 4px; height: 30px; background: #cbd5e0; }
+    
+    .timeline-item:last-child:after { display: none; }
+    
+    .timeline-year { font-weight: 700; color: #1a365d; font-size: 1.1rem; }
+    
+    .timeline-title { font-weight: 600; color: #1a202c; margin: 5px 0; }
+    
+    .timeline-desc { color: #718096; font-size: 0.95rem; }
+    
+    .cta-section-about { background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: white; padding: 50px 20px; text-align: center; border-radius: 10px; }
+    
+    .cta-section-about h2 { color: white; margin-bottom: 20px; }
+    
+    .cta-section-about p { font-size: 1.1rem; margin-bottom: 30px; opacity: 0.9; }
+    
+    .btn-contact-cta { display: inline-block; background: #b8860b; color: white; padding: 14px 35px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; margin: 0 10px; }
+    
+    .btn-contact-cta:hover { background: #9a7009; transform: scale(1.05); }
+  </style>
+</head>
+
+<body>
+  {% include 'includes/navbar.html' %}
+
+  <main class="main-content">
+    <!-- HERO SECTION -->
+    <section class="hero-section-about">
+      <div class="container">
+        {% if portfolio and portfolio.profile_image %}
+          <img src="{{ portfolio.profile_image }}" alt="Professional Profile" style="width: 150px; height: 150px; border-radius: 8px; object-fit: cover; margin-bottom: 25px; border: 2px solid white; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
+        {% endif %}
+        <h1 style="color: white; font-size: 3rem; margin-bottom: 10px; font-weight: 700;">Ajay Prakash Pandey</h1>
+        <p style="font-size: 1.3rem; color: #b8860b; margin: 0; font-weight: 600;">Software Developer | Machine Learning & Data Analytics</p>
+        <p style="font-size: 1.1rem; color: #cbd5e0; margin: 8px 0 0 0;">🚀 Building Scalable Solutions | AI/ML Enthusiast | Software Engineer| Software Developer</p>
+      </div>
+    </section>
+
+    <!-- ABOUT INTRODUCTION -->
+    <section class="page-section">
+      <div class="about-intro">
+        <p style="color: #1a202c; font-size: 1.15rem; line-height: 1.8;">
+          <strong>AI/ML-focused Software Developer</strong> with strong foundations in Computer Science, Python, backend engineering, and data science. I'm experienced in building scalable backend systems, developing machine learning models, and transforming data into actionable insights. Proficient in algorithms, OOP, and system fundamentals with hands-on project experience in analytics and web applications. I'm seeking opportunities in Software Development, Machine Learning, or Data Analytics to deliver scalable and data-driven solutions.
+        </p>
+        <p style="color: #1a202c; font-size: 1.05rem; line-height: 1.8; margin-top: 15px;">
+          <strong>📍 Location:</strong> India | <strong>📱 Phone:</strong> +91-8881254553 | <strong>📧 Email:</strong> ajayprakashp59@gmail.com
+        </p>
+        <p style="color: #1a202c; font-size: 1.05rem; line-height: 1.8;">
+          <strong>🔗 Connect:</strong> <a href="https://linkedin.com/in/ajayprakashpandey" style="color: #1a365d; font-weight: 600; text-decoration: none;">LinkedIn</a> | <a href="https://github.com/Ajay-Prakash-Pandey" style="color: #1a365d; font-weight: 600; text-decoration: none;">GitHub</a> | <a href="https://hackerrank.com/profile/AjayPrakashPande" style="color: #1a365d; font-weight: 600; text-decoration: none;">HackerRank</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- EXPERTISE HIGHLIGHTS -->
+    <section class="page-section">
+      <h2 style="font-size: 2.2rem; color: #1a202c; margin-bottom: 10px; font-weight: 700;">Technical Skills & Expertise</h2>
+      <div class="expertise-section">
+        <div class="expertise-grid">
+          <div class="expertise-item">
+            <i class="fas fa-code" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Programming Languages</strong>
+            <p>Python, Java, PHP, SQL - Core languages for backend and data applications</p>
+          </div>
+          <div class="expertise-item">
+            <i class="fas fa-brain" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Machine Learning & AI</strong>
+            <p>Regression, Classification, Clustering, Feature Engineering, Cross-Validation, EDA</p>
+          </div>
+          <div class="expertise-item">
+            <i class="fas fa-chart-bar" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Data Science Libraries</strong>
+            <p>Scikit-learn, NumPy, Pandas, Matplotlib, Seaborn - Building analytical solutions</p>
+          </div>
+          <div class="expertise-item">
+            <i class="fas fa-server" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Backend Development</strong>
+            <p>Flask, REST APIs, HTML5, CSS3, HTTP/HTTPS - Building scalable web applications</p>
+          </div>
+          <div class="expertise-item">
+            <i class="fas fa-graduation-cap" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Computer Science Fundamentals</strong>
+            <p>Data Structures, Algorithms, OOP, OS, DBMS, Computer Networks</p>
+          </div>
+          <div class="expertise-item">
+            <i class="fas fa-tools" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Developer Tools</strong>
+            <p>Git, GitHub, Jupyter Notebook, Google Colab, VS Code, Linux</p>
+          </div>
+        </div>
+      </div>
+    </section>
+            <p>Mobile-First Approach, Cross-Browser Compatibility</p>
+          </div>
+          <div class="expertise-item">
+            <i class="fas fa-tools" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Development Tools</strong>
+            <p>Git, GitHub, VS Code, Docker, Development Workflows</p>
+          </div>
+          <div class="expertise-item">
+            <i class="fas fa-chart-line" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+            <strong>Performance & SEO</strong>
+            <p>Optimization, Site Speed, SEO Best Practices</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFESSIONAL EXPERIENCE TIMELINE -->
+    <section class="page-section">
+      <h2 style="font-size: 2.2rem; color: #1a202c; margin-bottom: 40px; font-weight: 700;">Professional Journey</h2>
+      <div style="max-width: 700px; margin: 0 auto;">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-year">May 2025 - July 2025</div>
+            <div class="timeline-title">AI/ML Training - Invisor Technologies and Consultancy</div>
+            <div class="timeline-desc">Completed AI/ML training with hands-on work on real-world datasets, EDA, and predictive model development using Scikit-learn.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">May 2024 - July 2024</div>
+            <div class="timeline-title">Web Development Training</div>
+            <div class="timeline-desc">Completed web development training focused on Python, Flask, REST APIs, CRUD operations, and backend project development.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2023 – 2026</div>
+            <div class="timeline-title">Bachelor of Computer Applications (BCA)</div>
+            <div class="timeline-desc">Building strong foundation in Computer Science fundamentals, DSA, OOP, and software engineering principles. Actively practicing on HackerRank and GitHub.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFESSIONAL SUMMARY -->
+    <section class="page-section">
+      <h2 style="font-size: 2.2rem; color: #1a202c; margin-bottom: 30px; font-weight: 700;">Why Work With Me?</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; max-width: 1000px; margin: 0 auto;">
+        <div style="padding: 25px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left;">
+          <h4 style="color: #1a365d; font-weight: 600; margin-bottom: 10px;"><i class="fas fa-brain"></i> AI/ML Expertise</h4>
+          <p style="color: #718096;">Strong focus on machine learning, data analytics, and building intelligent systems. Experienced in model development and data-driven decision making.</p>
+        </div>
+        <div style="padding: 25px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left;">
+          <h4 style="color: #1a365d; font-weight: 600; margin-bottom: 10px;"><i class="fas fa-code-branch"></i> Full-Stack Developer</h4>
+          <p style="color: #718096;">Capable of building complete solutions from backend APIs to frontend interfaces. Strong in Python, Flask, and modern web technologies.</p>
+        </div>
+        <div style="padding: 25px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left;">
+          <h4 style="color: #1a365d; font-weight: 600; margin-bottom: 10px;"><i class="fas fa-graduation-cap"></i> Strong Fundamentals</h4>
+          <p style="color: #718096;">Solid understanding of Computer Science fundamentals: DSA, OOP, Databases, Operating Systems, and Networks.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section style="margin: 60px 20px;">
+      <div class="cta-section-about">
+        <h2>Let's Build Something Great Together!</h2>
+        <p>I'm passionate about software development, AI/ML, and solving real-world problems. Let's connect and explore opportunities to collaborate!</p>
+        <a href="{{ url_for('contact') }}" class="btn-contact-cta">
+          <i class="fas fa-envelope"></i> Contact Me
+        </a>
+        <a href="{{ url_for('projects') }}" class="btn-contact-cta" style="background: white; color: #1a365d;">
+          <i class="fas fa-briefcase"></i> View My Projects
+        </a>
+        <a href="{{ url_for('download_resume') }}" class="btn-contact-cta" style="background: #2c5282; color: white;">
+          <i class="fas fa-download"></i> Download My Resume
+        </a>
+      </div>
+    </section>
+  </main>              <i class="fas fa-envelope"></i> Contact Me
+            </button>
+          </a>
+          <a href="{{ url_for('skills') }}" style="display: inline-block; text-decoration: none;">
+            <button style="padding: 12px 30px; background: #f3f4f6; color: #1e40af; border: 2px solid #1e40af; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+              <i class="fas fa-star"></i> View Skills
+            </button>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {% include 'includes/footer.html' %}
+
+</body>
+</html>

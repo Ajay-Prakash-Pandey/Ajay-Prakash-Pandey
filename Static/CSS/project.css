@@ -1,0 +1,219 @@
+/* style.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+
+/* ========================================
+   PROJECTS PAGE - CONSISTENT UNIFIED LAYOUT
+   Same colors and styling as home page
+   ======================================== */
+
+:root {
+    --primary: #5a67d8;
+    --primary-dark: #4c51bf;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --bg-light: #f0f2f5;
+    --bg-white: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1 0 auto;
+}
+
+/* All sections - unified consistent styling */
+.projects-section,
+.section,
+.content-section {
+    padding: 2rem 1.5rem;
+    background: var(--bg-white);
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.projects-section:last-child,
+.section:last-child {
+    border-bottom: none;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-dark);
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+/* Paragraphs */
+p {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid var(--border-color);
+}
+
+th {
+    background: var(--bg-light);
+    color: var(--text-dark);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.project {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  width: 360px;
+  animation: zoomIn 0.8s ease-out forwards;
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+@keyframes zoomIn {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.content h2 {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 30px;
+  color: #2c3e50;
+  animation: fadeInDown 1s ease forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputBox {
+  position: relative;
+  animation: fadeUp 1.2s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.inputBox input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  transition: border-color 0.3s ease;
+}
+
+.inputBox input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.inputBox i {
+  display: block;
+  margin-top: 6px;
+  font-style: normal;
+  color: #555;
+  font-size: 14px;
+}
+
+.inputBox input[type="submit"] {
+  background: var(--primary);
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.inputBox input[type="submit"]:hover {
+  background: var(--primary-dark);
+}
+
+.links {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.links a {
+  text-decoration: none;
+  color: #2c3e50;
+  transition: color 0.3s ease;
+}
+
+.links a:hover {
+  color: #76b852;
+}

@@ -1,0 +1,322 @@
+/* Navigation Bar - Professional Style */
+
+:root {
+    --primary: #1a365d;
+    --primary-light: #2c5282;
+    --bg-light: #f8f9fa;
+    --bg-dark: #1a202c;
+    --text-dark: #1a202c;
+    --text-light: #718096;
+}
+
+/* Professional Navbar */
+.navbar {
+    background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%) !important;
+    padding: 1rem 2rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+    border-bottom: 3px solid #b8860b !important;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.navbar-brand {
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 1.3rem !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    transition: all 0.3s ease !important;
+    margin-right: auto !important;
+    letter-spacing: 0.3px !important;
+    animation: brandSlideIn 0.6s ease-out;
+}
+
+@keyframes brandSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.navbar-brand:hover {
+    color: #daa520;
+    opacity: 1;
+    transform: translateX(2px);
+}
+
+.navbar-brand img {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 4px !important;
+    object-fit: cover !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.navbar-brand i {
+    font-size: 35px !important;
+    color: #ffffff !important;
+}
+
+.navbar-collapse {
+    justify-content: flex-end !important;
+}
+
+.navbar-nav {
+    align-items: center !important;
+    gap: 5px !important;
+    animation: navSlideDown 0.7s ease-out;
+}
+
+@keyframes navSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-item {
+    display: flex !important;
+    align-items: center !important;
+    animation: navItemFadeIn 0.6s ease-out backwards;
+}
+
+.nav-item:nth-child(1) { animation-delay: 0.1s; }
+.nav-item:nth-child(2) { animation-delay: 0.15s; }
+.nav-item:nth-child(3) { animation-delay: 0.2s; }
+.nav-item:nth-child(4) { animation-delay: 0.25s; }
+.nav-item:nth-child(5) { animation-delay: 0.3s; }
+.nav-item:nth-child(6) { animation-delay: 0.35s; }
+
+@keyframes navItemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+    border-radius: 5px !important;
+    transition: all 0.3s ease !important;
+    font-family: 'Poppins', sans-serif !important;
+    white-space: nowrap !important;
+    font-size: 0.95rem !important;
+    letter-spacing: 0.3px !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(26, 54, 93, 0.1) 50%, transparent 100%);
+    transition: left 0.5s ease;
+}
+
+.nav-link:hover::before {
+    left: 100%;
+}
+
+.nav-link:hover {
+    background-color: rgba(184, 134, 11, 0.2) !important;
+    color: #daa520 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
+}
+
+.nav-link:focus {
+    color: #daa520 !important;
+}
+
+.nav-link.active {
+    background-color: rgba(184, 134, 11, 0.3) !important;
+    color: #daa520 !important;
+    border-bottom: 2px solid #daa520 !important;
+    padding-bottom: 6px !important;
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(184, 134, 11, 0.5) !important;
+    outline: none !important;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+    .navbar-nav {
+        gap: 0 !important;
+        text-align: right;
+    }
+    
+    .nav-link {
+        padding: 8px 12px !important;
+        margin: 4px 0 !important;
+    }
+    
+    .resume-download-btn {
+        padding: 10px 16px !important;
+        margin: 8px 0 !important;
+        font-size: 0.95rem !important;
+    }
+
+    .resume-download-btn span {
+        display: inline !important;
+    }
+    
+    .navbar-collapse {
+        background-color: rgba(26, 54, 93, 0.98);
+        margin-top: 10px;
+        padding: 10px 0;
+        border-radius: 6px;
+        border: 1px solid rgba(184, 134, 11, 0.2);
+    }
+}
+
+/* Resume Download Button - Special Styling */
+.resume-btn-container {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 12px !important;
+}
+
+.resume-download-btn {
+    background: linear-gradient(135deg, #b8860b 0%, #daa520 100%) !important;
+    color: #ffffff !important;
+    border: 2px solid #b8860b !important;
+    font-weight: 700 !important;
+    padding: 10px 18px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3) !important;
+    white-space: nowrap !important;
+}
+
+.resume-download-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    transition: left 0.5s ease;
+}
+
+.resume-download-btn:hover::after {
+    left: 100%;
+}
+
+.resume-download-btn:hover {
+    background: linear-gradient(135deg, #daa520 0%, #ffd700 100%) !important;
+    color: #1a365d !important;
+    border-color: #ffd700 !important;
+    box-shadow: 0 8px 20px rgba(184, 134, 11, 0.5) !important;
+    transform: translateY(-4px) scale(1.05) !important;
+}
+
+.resume-download-btn:active {
+    transform: translateY(-2px) scale(0.98) !important;
+}
+
+.resume-download-btn i {
+    font-size: 1.1rem !important;
+    display: inline-block !important;
+    animation: downloadPulse 2s ease-in-out infinite;
+}
+
+@keyframes downloadPulse {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(3px); }
+}
+
+/* Legacy nav styles for custom navbars */
+nav {
+  background-color: #222;
+  padding: 10px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+nav li {
+  margin: 0 15px;
+}
+
+nav a {
+  text-decoration: none;
+  color: white;
+  font-size: 1rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+nav a:hover {
+  background-color: #667eea;
+  color: white;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  nav ul {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  nav li {
+    margin: 10px 0;
+  }
+
+  nav a {
+    font-size: 0.95rem;
+  }
+}

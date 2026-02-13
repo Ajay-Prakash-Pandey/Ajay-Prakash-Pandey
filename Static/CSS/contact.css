@@ -1,0 +1,319 @@
+/* ========================================
+   CONTACT PAGE - CONSISTENT UNIFIED LAYOUT
+   Same colors and styling as home page
+   ======================================== */
+
+:root {
+    --primary: #5a67d8;
+    --primary-dark: #4c51bf;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --bg-light: #f0f2f5;
+    --bg-white: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1 0 auto;
+}
+
+/* All sections - unified consistent styling */
+.contact-form-container,
+.contact-section,
+.content-section {
+    padding: 2rem 1.5rem;
+    background: var(--bg-white);
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.contact-form-container:last-child,
+.contact-section:last-child {
+    border-bottom: none;
+}
+
+/* Form styling */
+input, textarea, select {
+    background: white;
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
+    transition: all 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-dark);
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+/* Paragraphs */
+p {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+}
+
+p:last-child {
+    margin-bottom: 0;
+}
+
+/* Buttons */
+button, input[type="submit"] {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover, input[type="submit"]:hover {
+    background: var(--primary-dark);
+}
+
+.contact-form-container h2 {
+    text-align: center;
+    margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ===== FORM ELEMENTS ===== */
+.form-group {
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+}
+
+label {
+    display: block;
+    margin-bottom: clamp(0.4rem, 1vw, 0.6rem);
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: clamp(0.6rem, 1.5vw, 0.85rem) clamp(0.75rem, 2vw, 1rem);
+    border: 2px solid var(--gray-light);
+    border-radius: 8px;
+    resize: vertical;
+    font-size: clamp(0.95rem, 2vw, 1rem);
+    box-sizing: border-box;
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb;
+    color: var(--text-dark);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-light);
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+textarea {
+    min-height: clamp(100px, 15vw, 150px);
+    line-height: 1.6;
+}
+
+/* ===== BUTTON ===== */
+button {
+    display: block;
+    width: 100%;
+    padding: clamp(0.6rem, 1.5vw, 0.85rem) clamp(1rem, 2.5vw, 1.5rem);
+    margin-top: clamp(1rem, 2.5vw, 1.5rem);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    cursor: pointer;
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f92 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+button:active {
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== RESPONSIVE DESIGN - TABLETS (1024px and down) ===== */
+@media (max-width: 1024px) {
+    .contact-form-container {
+        margin: clamp(1rem, 3vw, 2rem) auto;
+        max-width: 90%;
+    }
+    
+    input,
+    textarea {
+        padding: clamp(0.5rem, 1.2vw, 0.75rem) clamp(0.6rem, 1.5vw, 0.9rem);
+        font-size: clamp(0.9rem, 1.8vw, 1rem);
+    }
+}
+
+/* ===== RESPONSIVE DESIGN - MOBILE (768px and down) ===== */
+@media (max-width: 768px) {
+    .contact-form-container {
+        margin: clamp(1rem, 2.5vw, 1.5rem) auto;
+        padding: clamp(1rem, 2.5vw, 1.5rem);
+        max-width: 95%;
+        border-radius: 10px;
+    }
+    
+    .contact-form-container h2 {
+        font-size: clamp(1.3rem, 3vw, 1.8rem);
+        margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+    }
+    
+    .form-group {
+        margin-bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+    }
+    
+    label {
+        font-size: clamp(0.8rem, 1.6vw, 0.9rem);
+        margin-bottom: clamp(0.3rem, 0.8vw, 0.5rem);
+    }
+    
+    input,
+    textarea {
+        padding: clamp(0.5rem, 1.2vw, 0.7rem) clamp(0.5rem, 1.2vw, 0.8rem);
+        font-size: clamp(0.9rem, 1.6vw, 0.95rem);
+        border-radius: 6px;
+    }
+    
+    textarea {
+        min-height: clamp(80px, 12vw, 120px);
+    }
+    
+    button {
+        padding: clamp(0.5rem, 1.2vw, 0.75rem) clamp(0.5rem, 1.2vw, 1rem);
+        font-size: clamp(0.85rem, 1.6vw, 0.95rem);
+        margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
+        letter-spacing: 0.3px;
+    }
+}
+
+/* ===== RESPONSIVE DESIGN - SMALL MOBILE (480px and down) ===== */
+@media (max-width: 480px) {
+    .contact-form-container {
+        margin: clamp(0.75rem, 2vw, 1rem) auto;
+        padding: clamp(0.75rem, 2vw, 1.25rem);
+        max-width: 97%;
+        border-radius: 8px;
+    }
+    
+    .contact-form-container h2 {
+        font-size: clamp(1.1rem, 2.8vw, 1.5rem);
+        margin-bottom: clamp(0.6rem, 1.5vw, 1rem);
+    }
+    
+    .form-group {
+        margin-bottom: clamp(0.6rem, 1.2vw, 1rem);
+    }
+    
+    label {
+        font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+        margin-bottom: clamp(0.25rem, 0.6vw, 0.4rem);
+        font-weight: 500;
+    }
+    
+    input,
+    textarea {
+        padding: clamp(0.4rem, 1vw, 0.6rem) clamp(0.4rem, 1vw, 0.7rem);
+        font-size: clamp(0.85rem, 1.5vw, 0.9rem);
+        border-radius: 5px;
+    }
+    
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    
+    textarea {
+        min-height: clamp(70px, 10vw, 100px);
+    }
+    
+    button {
+        padding: clamp(0.45rem, 1vw, 0.65rem) clamp(0.4rem, 1vw, 0.6rem);
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        margin-top: clamp(0.6rem, 1.2vw, 1rem);
+        letter-spacing: 0.2px;
+    }
+}

@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: myportfolio
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_NAME
+        value: Ajay Prakash Pandey
+      - key: ADMIN_EMAIL
+        value: ajayprakashp59@gmail.com
+      - key: ADMIN_PHONE
+        value: "8881254553"
+      - key: ADMIN_GITHUB
+        value: https://github.com/Ajay-Prakash-Pandey
+      - key: ADMIN_LINKEDIN
+        value: https://www.linkedin.com/in/ajayprakashpandey
+      - key: SENDER_EMAIL
+        value: ajayprakashp59@gmail.com
+      - key: SENDER_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: myportfolio-db
+          property: connectionString
+
+databases:
+  - name: myportfolio-db
+    plan: free

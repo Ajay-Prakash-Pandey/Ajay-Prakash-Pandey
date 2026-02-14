@@ -51,7 +51,7 @@ app.config.update(
     PREFERRED_URL_SCHEME='https',
 )
 
-SITE_URL = os.environ.get('SITE_URL', '').strip().rstrip('/')
+SITE_URL = os.environ.get('SITE_URL', os.environ.get('RENDER_EXTERNAL_URL', '')).strip().rstrip('/')
 
 # Database Configuration
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site.db')
@@ -263,7 +263,7 @@ def send_email(to_email: str, subject: str, html_content: str) -> bool:
     """Send email using Gmail SMTP (free)"""
     try:
         if not SENDER_EMAIL or not SENDER_PASSWORD:
-            print("Email credentials missing. Set SENDER_EMAIL and SENDER_PASSWORD.")
+            app.logger.error("Email credentials missing. Set SENDER_EMAIL and SENDER_PASSWORD.")
             return False
 
         msg = MIMEMultipart('alternative')
@@ -280,7 +280,7 @@ def send_email(to_email: str, subject: str, html_content: str) -> bool:
         
         return True
     except Exception as e:
-        print(f"Email error: {str(e)}")
+        app.logger.exception("Email sending failed: %s", str(e))
         return False
 
 def send_password_reset_email(email: str, reset_url: str) -> bool:
@@ -348,6 +348,28 @@ def send_contact_notification(name: str, email: str, message: str) -> bool:
     """
     return send_email(ADMIN_EMAIL, f"🔔 NEW CONTACT: {name}", html)
 
+def send_contact_acknowledgement(name: str, email: str) -> bool:
+    """Send acknowledgement email to the contact form sender."""
+    html = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; background: #f6f8fb; padding: 20px;">
+            <div style="max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                <div style="background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: #fff; padding: 20px; text-align: center;">
+                    <h2 style="margin: 0;">Thank you for reaching out, {name}!</h2>
+                </div>
+                <div style="padding: 24px; color: #2d3748; line-height: 1.6;">
+                    <p style="margin-top: 0;">Your message has been received successfully.</p>
+                    <p>We typically reply within <strong>24 hours</strong>.</p>
+                    <p style="margin-bottom: 0;">For urgent requests, contact on WhatsApp: <strong>{ADMIN_PHONE}</strong>.</p>
+                </div>
+                <div style="background: #f1f5f9; padding: 14px 24px; color: #4a5568; font-size: 13px;">
+                    Automated acknowledgement from Ajay Prakash Pandey Portfolio.
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+    return send_email(email, "We received your message", html)
 def get_whatsapp_message_link(phone: str, message: str) -> str:
     """Generate WhatsApp message link"""
     import urllib.parse
@@ -649,7 +671,7 @@ def contact():
 
 @app.route("/contact", methods=['POST'])
 def contact_post():
-    """Handle contact form submission with email and WhatsApp alerts"""
+    """Handle contact form submission using free-only channels (DB + email)."""
     try:
         ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
         if is_rate_limited(f"contact:{ip}", max_attempts=5, window_seconds=600):
@@ -659,47 +681,46 @@ def contact_post():
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
         message = request.form.get('message', '').strip()
-        
+
         if not all([name, email, message]):
             flash('All fields are required', 'error')
             return redirect(url_for('contact'))
-        
+
         if not validate_email(email):
             flash('Invalid email address', 'error')
             return redirect(url_for('contact'))
-        
+
         if len(message) < 10:
             flash('Message must be at least 10 characters', 'error')
             return redirect(url_for('contact'))
-        
-        # Save to database
+
         with app.app_context():
             contact_msg = Contact(name=name, email=email, message=message)
             db.session.add(contact_msg)
             db.session.commit()
-        
-        # Send EMAIL ALERT to admin
-        email_sent = send_contact_notification(name, email, message)
-        
-        # Send WhatsApp ALERT link to admin
-        import urllib.parse
+
+        admin_email_sent = send_contact_notification(name, email, message)
+        user_email_sent = send_contact_acknowledgement(name, email)
+
         wa_phone = ADMIN_PHONE.replace('+', '').replace(' ', '').replace('-', '')
-        # WhatsApp message for admin with full details
-        wa_admin_message = f"📬 NEW MESSAGE:\n\nFrom: {name}\nEmail: {email}\n\nMessage:\n{message}"
-        wa_admin_encoded = urllib.parse.quote(wa_admin_message)
-        wa_admin_link = f"https://wa.me/{wa_phone}?text={wa_admin_encoded}"
-        
-        # Success message with full details
-        if email_sent:
-            success_msg = f'✅ Message sent! Admin notified via Email & WhatsApp'
-            flash(success_msg, 'success')
+        wa_admin_message = f'NEW MESSAGE:\n\nFrom: {name}\nEmail: {email}\n\nMessage:\n{message}'
+        wa_admin_link = get_whatsapp_message_link(wa_phone, wa_admin_message)
+
+        if admin_email_sent and user_email_sent:
+            flash('Message sent successfully. Confirmation email sent to you and admin notified.', 'success')
+        elif admin_email_sent and not user_email_sent:
+            flash('Message sent and admin notified, but confirmation email could not be sent to your inbox.', 'warning')
+        elif user_email_sent and not admin_email_sent:
+            app.logger.warning('Admin email failed for contact from %s; manual WhatsApp fallback link: %s', email, wa_admin_link)
+            flash('Message received and confirmation email sent to you. Admin email failed; message is saved in dashboard.', 'warning')
         else:
-            success_msg = f'✅ Message received! You will be contacted soon.'
-            flash(success_msg, 'success')
-        
+            app.logger.error('Both admin and user emails failed for contact from %s. Manual WhatsApp fallback link: %s', email, wa_admin_link)
+            flash('Message saved successfully, but email notifications are temporarily unavailable.', 'warning')
+
         return redirect(url_for('contact'))
     except Exception as e:
-        flash(f'Error: {str(e)}', 'error')
+        app.logger.exception('Contact submission failed: %s', str(e))
+        flash('Something went wrong while sending your message. Please try again.', 'error')
         return redirect(url_for('contact'))
 
 # ===== ROUTES: AUTHENTICATION =====
@@ -875,8 +896,12 @@ def forgot_password():
                     db.session.commit()
                     
                     # Send reset email
-                    reset_url = url_for('reset_password', token=reset_token, _external=True)
-                    send_password_reset_email(email, reset_url)
+                    reset_path = url_for('reset_password', token=reset_token)
+                    reset_url = f"{get_base_url()}{reset_path}"
+                    email_sent = send_password_reset_email(email, reset_url)
+                    if not email_sent:
+                        flash('Unable to send reset email right now. Please try again shortly.', 'error')
+                        return redirect(url_for('forgot_password'))
             
             # Always show this message for security (don't reveal if email exists)
             flash('If an account exists, you will receive a password reset email.', 'info')
@@ -1410,3 +1435,4 @@ if __name__ == "__main__":
         print("Database initialization failed")
     
     app.run(host="127.0.0.1", port=int(os.environ.get("PORT", 10000)), debug=False)
+

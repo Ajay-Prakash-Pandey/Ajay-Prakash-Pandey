@@ -4,18 +4,19 @@ footer {
     justify-content: center;
     display: flex;
     flex-direction: column;
-    background-color: #222;
-    color: #fff;
+    background: linear-gradient(135deg, #0b1220 0%, #111c2f 100%);
+    color: #f8fafc;
     text-align: center;
     padding: 30px 20px;
     margin-top: auto;
     width: 100%;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 -4px 15px rgba(11, 18, 32, 0.3);
 }
 
 :root {
-    --primary: #667eea;
-    --primary-light: #8b9ef5;
-    --accent: #f093fb;
+    --nav-accent: #38bdf8;
+    --nav-text-muted: rgba(248, 250, 252, 0.85);
 }
 
 /* Make footer stick to bottom when content is short */
@@ -48,14 +49,14 @@ ul {
 }
 
 footer a {
-    color: var(--primary-light);
+    color: var(--nav-accent);
     text-decoration: none;
     margin: 0 10px;
     transition: color 0.3s ease, transform 0.3s ease;
 }
 
 footer a:hover {
-    color: var(--accent);
+    color: #ffffff;
     transform: translateY(-2px);
 }
 
@@ -65,10 +66,10 @@ footer a:active {
 
 .footer-bottom {
     font-size: 0.9em;
-    color: #aaa;
+    color: var(--nav-text-muted);
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid #444;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 footer .socialmedia {

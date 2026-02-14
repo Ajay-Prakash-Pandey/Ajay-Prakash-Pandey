@@ -1221,4 +1221,4 @@ if __name__ == "__main__":
     else:
         print("Database initialization failed")
     
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=False)
+    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", 10000)), debug=False)

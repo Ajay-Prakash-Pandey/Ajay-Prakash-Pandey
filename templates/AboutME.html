@@ -4,8 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Professional Portfolio - Full Stack Developer with expertise in web development, backend systems, and enterprise solutions.">
-  <title>About - Professional Portfolio</title>
+  <meta name="description" content="About Ajay Prakash Pandey, software developer focused on machine learning, backend engineering, and scalable web applications.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="{{ request.base_url }}">
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="About Ajay Prakash Pandey | Software Developer">
+  <meta property="og:description" content="Career journey, technical strengths, and professional profile of Ajay Prakash Pandey.">
+  <meta property="og:url" content="{{ request.base_url }}">
+  <meta property="og:site_name" content="Ajay Prakash Pandey Portfolio">
+  {% if portfolio and portfolio.profile_image %}
+  <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ portfolio.profile_image }}">
+  <meta name="twitter:image" content="{{ request.url_root.rstrip('/') }}{{ portfolio.profile_image }}">
+  {% endif %}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About Ajay Prakash Pandey | Software Developer">
+  <meta name="twitter:description" content="Machine learning and software development profile with experience details.">
+  <title>About Ajay Prakash Pandey | Portfolio</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='CSS/master.css') }}">
@@ -89,7 +103,7 @@
     <section class="hero-section-about">
       <div class="container">
         {% if portfolio and portfolio.profile_image %}
-          <img src="{{ portfolio.profile_image }}" alt="Professional Profile" style="width: 150px; height: 150px; border-radius: 8px; object-fit: cover; margin-bottom: 25px; border: 2px solid white; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
+          <img src="{{ portfolio.profile_image }}" alt="Professional Profile" loading="lazy" decoding="async" style="width: 150px; height: 150px; border-radius: 8px; object-fit: cover; margin-bottom: 25px; border: 2px solid white; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
         {% endif %}
         <h1 style="color: white; font-size: 3rem; margin-bottom: 10px; font-weight: 700;">Ajay Prakash Pandey</h1>
         <p style="font-size: 1.3rem; color: #b8860b; margin: 0; font-weight: 600;">Software Developer | Machine Learning & Data Analytics</p>

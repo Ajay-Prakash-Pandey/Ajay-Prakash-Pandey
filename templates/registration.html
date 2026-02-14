@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="{{ request.base_url }}">
     <title>Register - My Portfolio</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='CSS/register.css') }}">
     <style>
@@ -102,6 +105,7 @@
         {% endwith %}
         
         <form method="post" action="{{ url_for('register') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="uname">Username *</label>
                 <input type="text" id="uname" name="uname" required placeholder="At least 3 characters">

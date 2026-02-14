@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file, Response, abort
 from flask_sqlalchemy import SQLAlchemy
 import os
 import re
 import io
+import time
 from werkzeug.security import generate_password_hash as wz_generate_password_hash, check_password_hash as wz_check_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
 try:
@@ -25,13 +26,14 @@ try:
     load_dotenv()  # Load .env file if it exists
 except ImportError:
     pass  # python-dotenv not installed, use environment variables only
-import secrets
+import secrets 
 import smtplib
 from datetime import datetime, timedelta, timezone
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
 from typing import Any, Callable, List, Optional
+from xml.sax.saxutils import escape as xml_escape
 
 # ===== FLASK APP SETUP =====
 app = Flask(__name__, static_folder='Static')
@@ -43,7 +45,13 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_COOKIE_SECURE=is_production,
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+    MAX_CONTENT_LENGTH=5 * 1024 * 1024,  # 5 MB max request size
+    SEND_FILE_MAX_AGE_DEFAULT=86400,  # 1 day static cache
+    PREFERRED_URL_SCHEME='https',
 )
+
+SITE_URL = os.environ.get('SITE_URL', '').strip().rstrip('/')
 
 # Database Configuration
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site.db')
@@ -58,6 +66,86 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+rate_limit_store: dict[str, list[float]] = {}
+
+def get_csrf_token() -> str:
+    token = session.get('_csrf_token')
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session['_csrf_token'] = token
+    return token
+
+def is_rate_limited(bucket: str, max_attempts: int, window_seconds: int) -> bool:
+    now = time.time()
+    recent = [t for t in rate_limit_store.get(bucket, []) if now - t < window_seconds]
+    if len(recent) >= max_attempts:
+        rate_limit_store[bucket] = recent
+        return True
+    recent.append(now)
+    rate_limit_store[bucket] = recent
+    return False
+
+@app.before_request
+def csrf_protect() -> None:
+    if request.method in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+        return
+    if request.path.startswith('/api/'):
+        return
+    session_token = session.get('_csrf_token')
+    request_token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
+    if not session_token or not request_token or not secrets.compare_digest(session_token, request_token):
+        abort(400, description='Invalid CSRF token')
+
+def get_base_url() -> str:
+    """Return canonical site origin from env or request context."""
+    if SITE_URL:
+        return SITE_URL
+    return request.url_root.rstrip('/')
+
+@app.after_request
+def apply_default_headers(response: Response) -> Response:
+    """Apply baseline security and crawler directives."""
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'DENY')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    response.headers.setdefault('Cross-Origin-Opener-Policy', 'same-origin')
+    response.headers.setdefault('Cross-Origin-Resource-Policy', 'same-origin')
+    csp = (
+        "default-src 'self'; "
+        "img-src 'self' data: https:; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://cdnjs.cloudflare.com data:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
+    )
+    response.headers.setdefault('Content-Security-Policy', csp)
+    if is_production and request.is_secure:
+        response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+
+    noindex_exact_paths = {
+        '/login',
+        '/register',
+        '/logout',
+        '/forgot-password',
+        '/change-password',
+        '/messages',
+    }
+    noindex_prefixes = (
+        '/dashboard',
+        '/api/',
+        '/add_',
+        '/edit_',
+        '/delete_',
+        '/reset-password',
+    )
+    if response.status_code >= 400 or request.path in noindex_exact_paths or any(request.path.startswith(prefix) for prefix in noindex_prefixes):
+        response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
+
+    return response
 
 # ===== CONTEXT PROCESSOR - Make portfolio available to all templates =====
 @app.context_processor
@@ -68,11 +156,13 @@ def inject_portfolio():
         return {
             'portfolio': portfolio,
             'admin_name': ADMIN_NAME,
+            'csrf_token': get_csrf_token,
         }
     except:
         return {
             'portfolio': None,
             'admin_name': ADMIN_NAME,
+            'csrf_token': get_csrf_token,
         }
 
 # ===== EMAIL CONFIGURATION (Free SMTP - Gmail) =====
@@ -456,6 +546,58 @@ init_db(interactive_admin=False)
 
 # ===== ROUTES: PUBLIC =====
 
+@app.route("/robots.txt")
+def robots_txt():
+    """Allow indexing for public pages and expose sitemap URL."""
+    base_url = get_base_url()
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /dashboard",
+        "Disallow: /login",
+        "Disallow: /register",
+        "Disallow: /logout",
+        "Disallow: /forgot-password",
+        "Disallow: /change-password",
+        "Disallow: /messages",
+        "Disallow: /api/",
+        f"Sitemap: {base_url}/sitemap.xml",
+    ]
+    return Response("\n".join(lines), mimetype="text/plain")
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    """Generate a sitemap for major public pages."""
+    today = datetime.now(timezone.utc).date().isoformat()
+    public_endpoints = ["index", "about", "projects", "skills", "contact", "download_resume"]
+    urls = []
+
+    for endpoint in public_endpoints:
+        try:
+            loc = url_for(endpoint, _external=True)
+            urls.append((loc, today))
+        except Exception:
+            continue
+
+    xml_items = []
+    for loc, lastmod in urls:
+        xml_items.append(
+            "<url>"
+            f"<loc>{xml_escape(loc)}</loc>"
+            f"<lastmod>{lastmod}</lastmod>"
+            "<changefreq>weekly</changefreq>"
+            "<priority>0.8</priority>"
+            "</url>"
+        )
+
+    xml_content = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        + "".join(xml_items) +
+        "</urlset>"
+    )
+    return Response(xml_content, mimetype="application/xml")
+
 @app.route("/")
 def index():
     try:
@@ -508,6 +650,11 @@ def contact():
 def contact_post():
     """Handle contact form submission with email and WhatsApp alerts"""
     try:
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+        if is_rate_limited(f"contact:{ip}", max_attempts=5, window_seconds=600):
+            flash('Too many requests. Please wait a few minutes and try again.', 'error')
+            return redirect(url_for('contact'))
+
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
         message = request.form.get('message', '').strip()
@@ -561,6 +708,11 @@ def register():
     """User registration"""
     if request.method == 'POST':
         try:
+            ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+            if is_rate_limited(f"register:{ip}", max_attempts=8, window_seconds=900):
+                flash('Too many registration attempts. Please try again later.', 'error')
+                return redirect(url_for('register'))
+
             username = request.form.get('uname', '').strip()
             email = request.form.get('email', '').strip()
             password = request.form.get('password', '')
@@ -616,6 +768,11 @@ def login():
     """User login - only admin can access"""
     if request.method == 'POST':
         try:
+            ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+            if is_rate_limited(f"login:{ip}", max_attempts=10, window_seconds=900):
+                flash('Too many login attempts. Please wait 15 minutes and try again.', 'error')
+                return redirect(url_for('login'))
+
             username = request.form.get('uname', '').strip()
             password = request.form.get('password', '')
             
@@ -629,7 +786,7 @@ def login():
             # Check username and password
             if user and bcrypt.check_password_hash(user.password, password):
                 # Only allow admin user with correct email
-                if user.email == 'ajayprakashp59@gmail.com':
+                if user.email == ADMIN_EMAIL:
                     session['logged_in'] = True
                     session['username'] = username
                     flash('Login successful!', 'success')
@@ -656,7 +813,7 @@ def change_password():
             confirm_password = request.form.get('confirm_password', '').strip()
             
             # Verify admin email
-            if email != 'ajayprakashp59@gmail.com':
+            if email != ADMIN_EMAIL:
                 flash('Invalid email. Only the registered admin email can change password.', 'error')
                 return redirect(url_for('change_password'))
             
@@ -695,6 +852,11 @@ def forgot_password():
     """Request password reset"""
     if request.method == 'POST':
         try:
+            ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+            if is_rate_limited(f"forgot:{ip}", max_attempts=6, window_seconds=900):
+                flash('Too many reset requests. Please try again later.', 'error')
+                return redirect(url_for('forgot_password'))
+
             email = request.form.get('email', '').strip()
             
             if not validate_email(email):

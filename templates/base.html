@@ -3,7 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Professional Portfolio - Full Stack Web Developer & Software Engineer">
+    <meta name="description" content="{% block meta_description %}Professional portfolio showcasing software development, machine learning, and backend engineering projects.{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}{{ request.base_url }}{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}{{ self.title()|striptags }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ self.meta_description()|striptags }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.base_url }}{% endblock %}">
+    <meta property="og:site_name" content="Ajay Prakash Pandey Portfolio">
+    {% if portfolio and portfolio.profile_image %}
+    <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ portfolio.profile_image }}">
+    <meta name="twitter:image" content="{{ request.url_root.rstrip('/') }}{{ portfolio.profile_image }}">
+    {% endif %}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ self.og_title()|striptags }}">
+    <meta name="twitter:description" content="{{ self.og_description()|striptags }}">
     <meta name="theme-color" content="#1a365d">
     <title>{% block title %}Professional Portfolio{% endblock %}</title>
     <!-- Master Responsive CSS -->
@@ -19,7 +33,17 @@
     {% if session.get('logged_in') %}
     <link rel="stylesheet" href="{{ url_for('static', filename='CSS/admin.css') }}">
     {% endif %}
+    {% block structured_data %}{% endblock %}
     {% block extra_css %}{% endblock %}
+    <style>
+        img, video, canvas, svg {
+            max-width: 100%;
+            height: auto;
+        }
+        html, body {
+            overflow-x: hidden;
+        }
+    </style>
 </head>
 <body>
     {% if session.get('logged_in') %}
@@ -40,6 +64,22 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Advanced Animations Script -->
     <script src="{{ url_for('static', filename='JavaScript/animations.js') }}" defer></script>
+    <script>
+    (function() {
+        var token = {{ csrf_token()|tojson }};
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(function(form) {
+                if (!form.querySelector('input[name="csrf_token"]')) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'csrf_token';
+                    input.value = token;
+                    form.appendChild(input);
+                }
+            });
+        });
+    })();
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

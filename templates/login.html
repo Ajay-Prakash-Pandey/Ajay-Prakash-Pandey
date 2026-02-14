@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="{{ request.base_url }}">
     <title>Login - My Portfolio</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='CSS/style.css') }}">
     <style>
@@ -139,6 +142,7 @@
         {% endwith %}
 
         <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <h2>Login</h2>
             
             <div class="form">

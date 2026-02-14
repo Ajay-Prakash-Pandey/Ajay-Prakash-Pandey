@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Get in Touch - {{ super() }}{% endblock %}
+{% block meta_description %}Contact Ajay Prakash Pandey for internships, software development opportunities, and collaboration on projects.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='CSS/contact.css') }}">
@@ -103,9 +104,7 @@
             <div class="contact-form-box">
                 <h3><i class="fas fa-paper-plane"></i> Send Message</h3>
                 <form id="contactForm" action="{{ url_for('contact_post') }}" method="post">
-
-        <label for="message">Your Message *</label>
-        <textarea id="message" name="message" rows="6" required placeholder="Tell me something... (minimum 10 characters)"></textarea>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                     <div class="form-group">
                         <label for="name">Your Name *</label>

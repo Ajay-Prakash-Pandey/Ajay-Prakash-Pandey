@@ -56,9 +56,15 @@ def inject_portfolio():
     """Make portfolio data available to all templates"""
     try:
         portfolio = Portfolio.query.first()
-        return {'portfolio': portfolio}
+        return {
+            'portfolio': portfolio,
+            'admin_name': ADMIN_NAME,
+        }
     except:
-        return {'portfolio': None}
+        return {
+            'portfolio': None,
+            'admin_name': ADMIN_NAME,
+        }
 
 # ===== EMAIL CONFIGURATION (Free SMTP - Gmail) =====
 # Store these as environment variables in production

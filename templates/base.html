@@ -44,6 +44,7 @@
             overflow-x: hidden;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/mobile-fixes.css') }}">
 </head>
 <body>
     {% if session.get('logged_in') %}
@@ -83,3 +84,4 @@
     {% block extra_js %}{% endblock %}
 </body>
 </html>
+

@@ -1,0 +1,182 @@
+/* Global mobile safeguards applied last to stabilize layout across all templates */
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.main-content,
+main,
+section,
+[class*="container"],
+[class*="wrapper"],
+[class*="section"] {
+  width: 100%;
+  max-width: 100%;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 640px;
+}
+
+@media (max-width: 991.98px) {
+  .navbar,
+  .navbar .container-fluid,
+  .navbar-collapse {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .navbar-nav {
+    width: 100%;
+    align-items: stretch !important;
+  }
+
+  .navbar .nav-link,
+  .navbar .resume-download-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .projects-page,
+  .contact-page,
+  .dashboard-wrapper,
+  .dashboard-container,
+  .profile-form,
+  .projects-container,
+  .content-section,
+  .page-section {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .projects-grid,
+  .contact-grid,
+  .section-grid,
+  .dashboard-grid,
+  .summary-stats,
+  .skills-grid,
+  .summary-grid,
+  .expertise-grid,
+  .why-grid,
+  .services-grid,
+  .cta-buttons {
+    grid-template-columns: 1fr !important;
+    flex-direction: column;
+  }
+
+  .skill-header,
+  .project-actions,
+  .dashboard-actions,
+  .form-actions,
+  .quick-links {
+    flex-wrap: wrap;
+  }
+
+  .btn,
+  button,
+  .submit-btn,
+  .project-link,
+  .quick-link,
+  .btn-contact-cta {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .login-container,
+  .login-card,
+  .registration-form,
+  .signin,
+  .password-container,
+  .error-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
+  }
+
+  .hero-title,
+  .skills-title,
+  .projects-header h1,
+  .contact-header h1,
+  .password-header h1,
+  .error-code {
+    word-break: break-word;
+  }
+
+  .messages-container,
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .table-scroll table,
+  .messages-container table {
+    min-width: 640px;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-container,
+  .contact-page,
+  .projects-page,
+  .dashboard-wrapper,
+  .dashboard-container,
+  .skills-hero,
+  .hero-section-about,
+  .hero-section-home {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .project-content,
+  .contact-form-box,
+  .contact-info-box,
+  .form-card,
+  .dashboard-card,
+  .skills-summary,
+  .expertise-section,
+  .cta-card,
+  .error-container,
+  .password-container,
+  .profile-form {
+    padding: 1rem !important;
+  }
+
+  .projects-header,
+  .contact-header {
+    margin-bottom: 2rem !important;
+  }
+
+  .projects-grid,
+  .skills-grid {
+    gap: 1rem !important;
+  }
+}
+

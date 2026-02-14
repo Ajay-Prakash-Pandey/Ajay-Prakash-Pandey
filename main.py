@@ -625,8 +625,9 @@ def projects():
             portfolio = Portfolio.query.first()
             compatible = result_to_list_of_tuples(projects_data, Project)
         return render_template('projects.html', projects=compatible, portfolio=portfolio)
-    except Exception as e:
-        flash(f'Error loading projects: {str(e)}', 'error')
+    except Exception:
+        app.logger.exception('Failed to load projects data')
+        flash('Projects are temporarily unavailable. Please try again shortly.', 'error')
         return render_template('projects.html', projects=[], portfolio=None)
 
 @app.route("/skills")

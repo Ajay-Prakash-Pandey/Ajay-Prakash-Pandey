@@ -560,6 +560,106 @@ def build_ats_resume_pdf(resume_text: str) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+def build_human_readable_resume_pdf(resume_text: str) -> io.BytesIO:
+    """Generate a human-readable PDF from portfolio resume text."""
+    try:
+        from reportlab.lib.pagesizes import LETTER
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfgen import canvas
+    except ImportError as exc:
+        raise RuntimeError("PDF generator dependency missing: reportlab") from exc
+
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=LETTER)
+    page_width, page_height = LETTER
+
+    left_margin = 54
+    right_margin = 54
+    top_margin = 56
+    bottom_margin = 54
+    max_width = page_width - left_margin - right_margin
+
+    section_titles = {"CONTACT", "PROFESSIONAL SUMMARY", "SKILLS", "PROJECTS"}
+
+    def wrap_line(raw_line: str, font_name: str, font_size: float) -> list[str]:
+        if raw_line.strip() == "":
+            return [""]
+        words = raw_line.split()
+        if not words:
+            return [""]
+        output: list[str] = []
+        current = words[0]
+        for word in words[1:]:
+            trial = f"{current} {word}"
+            if pdfmetrics.stringWidth(trial, font_name, font_size) <= max_width:
+                current = trial
+            else:
+                output.append(current)
+                current = word
+        output.append(current)
+        return output
+
+    lines = resume_text.splitlines()
+    name_line = lines[0].strip() if lines else "Portfolio Resume"
+    headline_line = lines[1].strip() if len(lines) > 1 and lines[1].strip() and lines[1].strip() not in section_titles else ""
+    body_lines = lines[2:] if headline_line else lines[1:]
+
+    y = page_height - top_margin
+
+    # Header
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(left_margin, y, name_line)
+    y -= 24
+    if headline_line:
+        c.setFont("Helvetica", 11.5)
+        for wrapped in wrap_line(headline_line, "Helvetica", 11.5):
+            c.drawString(left_margin, y, wrapped)
+            y -= 16
+        y -= 4
+
+    for raw in body_lines:
+        line = raw.rstrip()
+
+        if y <= bottom_margin:
+            c.showPage()
+            y = page_height - top_margin
+
+        if line.strip() == "":
+            y -= 8
+            continue
+
+        if line.strip() in section_titles:
+            y -= 6
+            c.setFont("Helvetica-Bold", 12.5)
+            c.drawString(left_margin, y, line.strip())
+            y -= 16
+            c.setFont("Helvetica", 10.5)
+            continue
+
+        is_project_bullet = line.startswith("- ")
+        is_detail_line = line.startswith("  ")
+        font_name = "Helvetica-Bold" if is_project_bullet else "Helvetica"
+        font_size = 10.5
+        text = line[2:].strip() if is_project_bullet else line.strip()
+        indent = left_margin + 10 if is_detail_line else left_margin
+        if is_project_bullet:
+            c.setFont("Helvetica", 10.5)
+            c.drawString(left_margin, y, "-")
+            indent = left_margin + 12
+
+        c.setFont(font_name, font_size)
+        for wrapped in wrap_line(text, font_name, font_size):
+            if y <= bottom_margin:
+                c.showPage()
+                y = page_height - top_margin
+                c.setFont(font_name, font_size)
+            c.drawString(indent, y, wrapped)
+            y -= 14
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 # ===== DATABASE INITIALIZATION =====
 
 def init_db(interactive_admin: bool = False):
@@ -1493,6 +1593,26 @@ def download_resume():
         return response
     except Exception as e:
         flash(f'Error downloading resume: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/download-resume-readable')
+@app.route('/download-resume-readable.pdf')
+def download_resume_readable():
+    """Download a human-readable PDF resume generated from portfolio data."""
+    try:
+        portfolio = Portfolio.query.first()
+        resume_text = build_dynamic_resume_text(portfolio)
+        resume_pdf = build_human_readable_resume_pdf(resume_text)
+        response = send_file(
+            resume_pdf,
+            as_attachment=True,
+            download_name='Ajay_Prakash_Resume_Readable.pdf',
+            mimetype='application/pdf'
+        )
+        response.headers['Cache-Control'] = 'no-store, max-age=0'
+        return response
+    except Exception as e:
+        flash(f'Error downloading readable resume: {str(e)}', 'error')
         return redirect(url_for('index'))
 
 # ===== ERROR HANDLERS =====

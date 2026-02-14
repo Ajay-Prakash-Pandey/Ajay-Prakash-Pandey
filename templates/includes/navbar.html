@@ -25,6 +25,11 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="resumeDropdown">
                             <li>
+                                <a class="dropdown-item" href="{{ url_for('download_resume_readable') }}">
+                                    <i class="fas fa-file-lines"></i> Portfolio Resume (Readable PDF)
+                                </a>
+                            </li>
+                            <li>
                                 <a class="dropdown-item" href="{{ url_for('download_resume') }}">
                                     <i class="fas fa-file-pdf"></i> Portfolio Resume (ATS PDF)
                                 </a>

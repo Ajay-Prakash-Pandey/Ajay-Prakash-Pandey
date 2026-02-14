@@ -414,7 +414,20 @@ def result_to_list_of_tuples(results: List[Any], model_class: Any) -> List[Any]:
     return output
 
 def build_dynamic_resume_text(portfolio: Optional[Any]) -> str:
-    """Build a text resume using only saved project/profile data."""
+    """Build ATS-friendly plain resume text using saved portfolio data."""
+    def clean_text(value: str) -> str:
+        # Keep content plain and consistent for ATS parsing.
+        replacements = {
+            "’": "'",
+            "“": '"',
+            "”": '"',
+            "–": "-",
+            "—": "-",
+        }
+        for src, dst in replacements.items():
+            value = value.replace(src, dst)
+        return re.sub(r"\s+", " ", value).strip()
+
     profile_name = ADMIN_NAME.strip() if ADMIN_NAME else ""
     profile_email = ADMIN_EMAIL.strip() if ADMIN_EMAIL else ""
     profile_phone = (portfolio.phone.strip() if portfolio and portfolio.phone else ADMIN_PHONE.strip() if ADMIN_PHONE else "")
@@ -431,23 +444,23 @@ def build_dynamic_resume_text(portfolio: Optional[Any]) -> str:
     lines: List[str] = []
 
     if profile_name:
-        lines.append(profile_name)
+        lines.append(clean_text(profile_name))
     if profile_headline:
-        lines.append(profile_headline)
+        lines.append(clean_text(profile_headline))
 
     contact_lines: List[str] = []
     if profile_email:
-        contact_lines.append(f"Email: {profile_email}")
+        contact_lines.append(f"Email: {clean_text(profile_email)}")
     if profile_phone:
-        contact_lines.append(f"Phone: {profile_phone}")
+        contact_lines.append(f"Phone: {clean_text(profile_phone)}")
     if profile_location:
-        contact_lines.append(f"Location: {profile_location}")
+        contact_lines.append(f"Location: {clean_text(profile_location)}")
     if profile_github:
-        contact_lines.append(f"GitHub: {profile_github}")
+        contact_lines.append(f"GitHub: {clean_text(profile_github)}")
     if profile_linkedin:
-        contact_lines.append(f"LinkedIn: {profile_linkedin}")
+        contact_lines.append(f"LinkedIn: {clean_text(profile_linkedin)}")
     if profile_twitter:
-        contact_lines.append(f"Twitter: {profile_twitter}")
+        contact_lines.append(f"Twitter: {clean_text(profile_twitter)}")
 
     if contact_lines:
         if lines:
@@ -459,27 +472,32 @@ def build_dynamic_resume_text(portfolio: Optional[Any]) -> str:
         if lines:
             lines.append("")
         lines.append("PROFESSIONAL SUMMARY")
-        lines.append(profile_summary)
+        lines.append(clean_text(profile_summary))
 
     if skills_data:
         if lines:
             lines.append("")
         lines.append("SKILLS")
+        skills_by_category: dict[str, list[str]] = {}
         for skill in skills_data:
-            desc = f" - {skill.description.strip()}" if skill.description and skill.description.strip() else ""
-            category = skill.category.strip() if skill.category else ""
-            lines.append(f"- {skill.skill_name} ({category}, {skill.proficiency}%){desc}")
+            category = clean_text(skill.category) if skill.category else "Other"
+            skill_text = clean_text(skill.skill_name)
+            if skill.proficiency is not None:
+                skill_text = f"{skill_text} ({int(skill.proficiency)}%)"
+            skills_by_category.setdefault(category, []).append(skill_text)
+        for category in sorted(skills_by_category.keys()):
+            lines.append(f"{category}: {', '.join(skills_by_category[category])}")
 
     if projects_data:
         if lines:
             lines.append("")
         lines.append("PROJECTS")
         for project in projects_data:
-            lines.append(f"- {project.pname}")
+            lines.append(f"- {clean_text(project.pname)}")
             if project.projectDescripton and project.projectDescripton.strip():
-                lines.append(f"  Description: {project.projectDescripton.strip()}")
+                lines.append(f"  Description: {clean_text(project.projectDescripton)}")
             if project.projectlink and project.projectlink.strip():
-                lines.append(f"  Link: {project.projectlink.strip()}")
+                lines.append(f"  Link: {clean_text(project.projectlink)}")
 
     if not lines:
         lines.append("No portfolio data found.")
@@ -1445,29 +1463,34 @@ def download_uploaded_resume():
             flash('Uploaded resume file is missing. Please use Portfolio Resume PDF.', 'warning')
             return redirect(url_for('index'))
 
-        return send_file(
+        response = send_file(
             resume_path,
             as_attachment=True,
             download_name='Resume.pdf',
             mimetype='application/pdf'
         )
+        response.headers['Cache-Control'] = 'no-store, max-age=0'
+        return response
     except Exception as e:
         flash(f'Error downloading uploaded resume: {str(e)}', 'error')
         return redirect(url_for('index'))
 
 @app.route('/download-resume')
+@app.route('/download-resume.pdf')
 def download_resume():
     """Download an ATS-friendly PDF resume generated from portfolio data."""
     try:
         portfolio = Portfolio.query.first()
         resume_text = build_dynamic_resume_text(portfolio)
         resume_pdf = build_ats_resume_pdf(resume_text)
-        return send_file(
+        response = send_file(
             resume_pdf,
             as_attachment=True,
             download_name='Ajay_Prakash_Resume.pdf',
             mimetype='application/pdf'
         )
+        response.headers['Cache-Control'] = 'no-store, max-age=0'
+        return response
     except Exception as e:
         flash(f'Error downloading resume: {str(e)}', 'error')
         return redirect(url_for('index'))

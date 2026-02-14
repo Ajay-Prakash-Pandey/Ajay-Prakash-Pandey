@@ -35,6 +35,19 @@
     animation: brandSlideIn 0.6s ease-out;
 }
 
+.brand-link {
+    min-width: 0;
+}
+
+.brand-name {
+    display: inline-block;
+    max-width: min(52vw, 340px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nav-text) !important;
+}
+
 @keyframes brandSlideIn {
     from {
         opacity: 0;
@@ -124,6 +137,10 @@
     overflow: hidden;
 }
 
+.admin-link {
+    margin-left: 12px !important;
+}
+
 .nav-link::before {
     content: '';
     position: absolute;
@@ -179,14 +196,28 @@ header {
 
 /* Responsive Design */
 @media (max-width: 991px) {
+    .navbar {
+        padding: 0.75rem 1rem !important;
+    }
+
+    .brand-name {
+        max-width: 58vw;
+        font-size: 0.98rem;
+    }
+
     .navbar-nav {
         gap: 0 !important;
-        text-align: right;
+        text-align: left;
+        align-items: stretch !important;
     }
     
     .nav-link {
-        padding: 8px 12px !important;
+        padding: 10px 12px !important;
         margin: 4px 0 !important;
+    }
+
+    .admin-link {
+        margin-left: 0 !important;
     }
     
     .resume-download-btn {
@@ -202,9 +233,21 @@ header {
     .navbar-collapse {
         background-color: rgba(11, 18, 32, 0.98);
         margin-top: 10px;
-        padding: 10px 0;
+        padding: 10px;
         border-radius: 6px;
         border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+}
+
+@media (max-width: 576px) {
+    .brand-name {
+        max-width: 46vw;
+        font-size: 0.9rem;
+    }
+
+    .navbar-brand img {
+        width: 34px !important;
+        height: 34px !important;
     }
 }
 
@@ -271,14 +314,14 @@ header {
 }
 
 /* Legacy nav styles for custom navbars */
-nav {
+.legacy-nav {
   background-color: #222;
   padding: 10px 0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-nav ul {
+.legacy-nav ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -287,11 +330,11 @@ nav ul {
   flex-wrap: wrap;
 }
 
-nav li {
+.legacy-nav li {
   margin: 0 15px;
 }
 
-nav a {
+.legacy-nav a {
   text-decoration: none;
   color: white;
   font-size: 1rem;
@@ -301,23 +344,23 @@ nav a {
   display: inline-block;
 }
 
-nav a:hover {
+.legacy-nav a:hover {
   background-color: #667eea;
   color: white;
 }
 
 /* Responsive tweaks */
 @media (max-width: 600px) {
-  nav ul {
+  .legacy-nav ul {
     flex-direction: column;
     align-items: center;
   }
 
-  nav li {
+  .legacy-nav li {
     margin: 10px 0;
   }
 
-  nav a {
+  .legacy-nav a {
     font-size: 0.95rem;
   }
 }

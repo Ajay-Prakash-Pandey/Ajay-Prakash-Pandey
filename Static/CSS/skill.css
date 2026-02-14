@@ -3,11 +3,14 @@
 :root {
     --primary: #5a67d8;
     --primary-dark: #4c51bf;
+    --primary-light: #7c8cf0;
     --text-dark: #2d3748;
     --text-light: #718096;
     --bg-light: #f0f2f5;
     --bg-white: #ffffff;
     --border-color: #e2e8f0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
 html, body {
@@ -485,5 +488,24 @@ html, body {
         line-height: 28px;
         font-size: 1rem;
         padding-right: 15px;
+    }
+}
+
+/* Normalize legacy width rules so cards remain responsive in grid layouts */
+.skills-grid .skill {
+    width: auto;
+    max-width: none;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .skills-section h1 {
+        margin-top: 0;
+    }
+
+    .skills-grid .skill {
+        width: 100%;
+        max-width: none;
+        margin: 0;
     }
 }

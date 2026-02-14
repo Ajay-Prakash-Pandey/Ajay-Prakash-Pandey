@@ -6,11 +6,15 @@
 :root {
     --primary: #5a67d8;
     --primary-dark: #4c51bf;
+    --secondary: #764ba2;
+    --gray-light: #e2e8f0;
     --text-dark: #2d3748;
     --text-light: #718096;
     --bg-light: #f0f2f5;
     --bg-white: #ffffff;
     --border-color: #e2e8f0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
 html, body {

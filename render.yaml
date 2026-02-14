@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: myportfolio-web
+    name: Ajay-Prakash-Pandey
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
@@ -32,5 +32,5 @@ services:
           property: connectionString
 
 databases:
-  - name: myportfolio-db-main
+  - name: Ajay-Prakash-Pandey
     plan: free

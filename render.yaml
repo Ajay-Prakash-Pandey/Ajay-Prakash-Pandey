@@ -1,14 +1,17 @@
 services:
   - type: web
-    name: myportfolio
+    name: myportfolio-web
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app
+    healthCheckPath: /api/health/
     autoDeploy: true
     envVars:
       - key: SECRET_KEY
         generateValue: true
+      - key: ENVIRONMENT
+        value: production
       - key: ADMIN_NAME
         value: Ajay Prakash Pandey
       - key: ADMIN_EMAIL
@@ -25,9 +28,9 @@ services:
         sync: false
       - key: DATABASE_URL
         fromDatabase:
-          name: myportfolio-db
+          name: myportfolio-db-main
           property: connectionString
 
 databases:
-  - name: myportfolio-db
+  - name: myportfolio-db-main
     plan: free

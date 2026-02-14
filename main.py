@@ -4,6 +4,7 @@ import os
 import re
 import io
 from werkzeug.security import generate_password_hash as wz_generate_password_hash, check_password_hash as wz_check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 try:
     from flask_bcrypt import Bcrypt
 except ImportError:
@@ -35,6 +36,14 @@ from typing import Any, Callable, List, Optional
 # ===== FLASK APP SETUP =====
 app = Flask(__name__, static_folder='Static')
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)  # type: ignore[assignment]
+
+is_production = os.environ.get("RENDER", "").lower() == "true" or os.environ.get("ENVIRONMENT", "").lower() == "production"
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SECURE=is_production,
+)
 
 # Database Configuration
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site.db')
@@ -70,7 +79,7 @@ def inject_portfolio():
 # Store these as environment variables in production
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'ajayprakashp59@gmail.com')
 # ⚠️ IMPORTANT: Replace with YOUR 16-CHARACTER GMAIL APP PASSWORD from https://myaccount.google.com/apppasswords
-SENDER_PASSWORD = os.environ.get('SENDER_PASSWORD', 'ztbj kqtu dbwy rfpa')
+SENDER_PASSWORD = os.environ.get('SENDER_PASSWORD', '')
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'ajayprakashp59@gmail.com')
 ADMIN_PHONE = os.environ.get('ADMIN_PHONE', '8881254553')  # For WhatsApp/Contact
 ADMIN_NAME = os.environ.get('ADMIN_NAME', 'Ajay Prakash')
@@ -163,6 +172,10 @@ def login_required(f: Callable[..., Any]) -> Callable[..., Any]:
 def send_email(to_email: str, subject: str, html_content: str) -> bool:
     """Send email using Gmail SMTP (free)"""
     try:
+        if not SENDER_EMAIL or not SENDER_PASSWORD:
+            print("Email credentials missing. Set SENDER_EMAIL and SENDER_PASSWORD.")
+            return False
+
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = SENDER_EMAIL
@@ -1131,6 +1144,12 @@ def api_portfolio():
             }), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route("/api/health", methods=['GET'])
+@app.route("/api/health/", methods=['GET'])
+def api_health():
+    """Health check endpoint for hosting probes."""
+    return jsonify({'success': True, 'status': 'ok'}), 200
 
 @app.route("/api/new-messages", methods=['GET'])
 @login_required

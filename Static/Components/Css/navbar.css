@@ -308,6 +308,31 @@ header {
     animation: downloadPulse 2s ease-in-out infinite;
 }
 
+.resume-btn-container .dropdown-menu {
+    background: #0f1a2b;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 8px;
+    min-width: 260px;
+    padding: 6px;
+}
+
+.resume-btn-container .dropdown-item {
+    color: #e5f3ff;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    padding: 9px 10px;
+}
+
+.resume-btn-container .dropdown-item i {
+    margin-right: 8px;
+}
+
+.resume-btn-container .dropdown-item:hover,
+.resume-btn-container .dropdown-item:focus {
+    background: rgba(56, 189, 248, 0.18);
+    color: #ffffff;
+}
+
 @keyframes downloadPulse {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(3px); }
@@ -362,5 +387,12 @@ header {
 
   .legacy-nav a {
     font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 991px) {
+  .resume-btn-container .dropdown-menu {
+    min-width: 100%;
+    width: 100%;
   }
 }

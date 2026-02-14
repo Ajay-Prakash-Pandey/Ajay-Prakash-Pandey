@@ -1437,13 +1437,13 @@ def download_uploaded_resume():
     try:
         portfolio = Portfolio.query.first()
         if not portfolio or not portfolio.resume_url:
-            flash('No uploaded resume found. Please upload one in Edit Profile.', 'warning')
-            return redirect(url_for('edit_profile'))
+            flash('Uploaded resume is not available right now. Please use Portfolio Resume PDF.', 'warning')
+            return redirect(url_for('index'))
 
         resume_path = os.path.join(os.path.dirname(__file__), portfolio.resume_url.lstrip('/'))
         if not os.path.exists(resume_path):
-            flash('Uploaded resume file is missing. Please upload again.', 'warning')
-            return redirect(url_for('edit_profile'))
+            flash('Uploaded resume file is missing. Please use Portfolio Resume PDF.', 'warning')
+            return redirect(url_for('index'))
 
         return send_file(
             resume_path,

@@ -486,6 +486,62 @@ def build_dynamic_resume_text(portfolio: Optional[Any]) -> str:
 
     return "\n".join(lines)
 
+def build_ats_resume_pdf(resume_text: str) -> io.BytesIO:
+    """Generate a simple text-first PDF resume for ATS compatibility."""
+    try:
+        from reportlab.lib.pagesizes import LETTER
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfgen import canvas
+    except ImportError as exc:
+        raise RuntimeError("PDF generator dependency missing: reportlab") from exc
+
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=LETTER)
+
+    page_width, page_height = LETTER
+    left_margin = 54
+    right_margin = 54
+    top_margin = 54
+    bottom_margin = 54
+    max_width = page_width - left_margin - right_margin
+    line_height = 14
+    font_name = "Helvetica"
+    font_size = 10.5
+
+    def wrap_line(raw_line: str) -> list[str]:
+        if raw_line.strip() == "":
+            return [""]
+        words = raw_line.split()
+        if not words:
+            return [""]
+        lines_out: list[str] = []
+        current = words[0]
+        for word in words[1:]:
+            trial = f"{current} {word}"
+            if pdfmetrics.stringWidth(trial, font_name, font_size) <= max_width:
+                current = trial
+            else:
+                lines_out.append(current)
+                current = word
+        lines_out.append(current)
+        return lines_out
+
+    y = page_height - top_margin
+    c.setFont(font_name, font_size)
+
+    for source_line in resume_text.splitlines():
+        for line in wrap_line(source_line):
+            if y <= bottom_margin:
+                c.showPage()
+                c.setFont(font_name, font_size)
+                y = page_height - top_margin
+            c.drawString(left_margin, y, line)
+            y -= line_height
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 # ===== DATABASE INITIALIZATION =====
 
 def init_db(interactive_admin: bool = False):
@@ -1401,16 +1457,16 @@ def download_uploaded_resume():
 
 @app.route('/download-resume')
 def download_resume():
-    """Download a live resume generated from portfolio data."""
+    """Download an ATS-friendly PDF resume generated from portfolio data."""
     try:
         portfolio = Portfolio.query.first()
         resume_text = build_dynamic_resume_text(portfolio)
-        resume_bytes = io.BytesIO(resume_text.encode('utf-8'))
+        resume_pdf = build_ats_resume_pdf(resume_text)
         return send_file(
-            resume_bytes,
+            resume_pdf,
             as_attachment=True,
-            download_name='Ajay_Prakash_Resume.txt',
-            mimetype='text/plain; charset=utf-8'
+            download_name='Ajay_Prakash_Resume.pdf',
+            mimetype='application/pdf'
         )
     except Exception as e:
         flash(f'Error downloading resume: {str(e)}', 'error')

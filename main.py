@@ -145,6 +145,27 @@ def apply_default_headers(response: Response) -> Response:
     if response.status_code >= 400 or request.path in noindex_exact_paths or any(request.path.startswith(prefix) for prefix in noindex_prefixes):
         response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
 
+    sensitive_paths = (
+        '/dashboard',
+        '/messages',
+        '/logout',
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/change-password',
+        '/reset-password',
+        '/add_',
+        '/edit_',
+        '/delete_',
+        '/api/new-messages',
+    )
+    is_sensitive = any(request.path.startswith(path) for path in sensitive_paths)
+    if is_sensitive or session.get('logged_in'):
+        # Prevent browser back button from showing cached authenticated pages after logout.
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+
     return response
 
 # ===== CONTEXT PROCESSOR - Make portfolio available to all templates =====
@@ -561,8 +582,9 @@ def build_ats_resume_pdf(resume_text: str) -> io.BytesIO:
     return buffer
 
 def build_human_readable_resume_pdf(resume_text: str) -> io.BytesIO:
-    """Generate a human-readable PDF from portfolio resume text."""
+    """Generate a styled, human-readable PDF from portfolio resume text."""
     try:
+        from reportlab.lib import colors
         from reportlab.lib.pagesizes import LETTER
         from reportlab.pdfbase import pdfmetrics
         from reportlab.pdfgen import canvas
@@ -573,88 +595,143 @@ def build_human_readable_resume_pdf(resume_text: str) -> io.BytesIO:
     c = canvas.Canvas(buffer, pagesize=LETTER)
     page_width, page_height = LETTER
 
-    left_margin = 54
-    right_margin = 54
-    top_margin = 56
-    bottom_margin = 54
-    max_width = page_width - left_margin - right_margin
+    left_margin = 46
+    right_margin = 46
+    top_margin = 44
+    bottom_margin = 46
+    usable_width = page_width - left_margin - right_margin
 
     section_titles = {"CONTACT", "PROFESSIONAL SUMMARY", "SKILLS", "PROJECTS"}
 
-    def wrap_line(raw_line: str, font_name: str, font_size: float) -> list[str]:
-        if raw_line.strip() == "":
+    def wrap_line(raw_line: str, font_name: str, font_size: float, width: float) -> list[str]:
+        text = raw_line.strip()
+        if text == "":
             return [""]
-        words = raw_line.split()
-        if not words:
-            return [""]
-        output: list[str] = []
+        words = text.split()
+        lines_out: list[str] = []
         current = words[0]
         for word in words[1:]:
             trial = f"{current} {word}"
-            if pdfmetrics.stringWidth(trial, font_name, font_size) <= max_width:
+            if pdfmetrics.stringWidth(trial, font_name, font_size) <= width:
                 current = trial
             else:
-                output.append(current)
+                lines_out.append(current)
                 current = word
-        output.append(current)
-        return output
+        lines_out.append(current)
+        return lines_out
 
-    lines = resume_text.splitlines()
+    def new_page() -> float:
+        c.showPage()
+        return page_height - top_margin
+
+    lines = [ln.rstrip() for ln in resume_text.splitlines()]
     name_line = lines[0].strip() if lines else "Portfolio Resume"
     headline_line = lines[1].strip() if len(lines) > 1 and lines[1].strip() and lines[1].strip() not in section_titles else ""
     body_lines = lines[2:] if headline_line else lines[1:]
 
+    sections: dict[str, list[str]] = {}
+    section_order: list[str] = []
+    current_section = "BODY"
+    sections[current_section] = []
+
+    for line in body_lines:
+        key = line.strip()
+        if key in section_titles:
+            current_section = key
+            if current_section not in sections:
+                sections[current_section] = []
+                section_order.append(current_section)
+            continue
+        sections.setdefault(current_section, []).append(line)
+        if current_section not in section_order and current_section != "BODY":
+            section_order.append(current_section)
+
     y = page_height - top_margin
 
-    # Header
-    c.setFont("Helvetica-Bold", 18)
-    c.drawString(left_margin, y, name_line)
-    y -= 24
+    # Header block
+    c.setFillColor(colors.HexColor("#123765"))
+    c.roundRect(left_margin, y - 78, usable_width, 78, 8, stroke=0, fill=1)
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(left_margin + 14, y - 26, name_line)
+
     if headline_line:
-        c.setFont("Helvetica", 11.5)
-        for wrapped in wrap_line(headline_line, "Helvetica", 11.5):
-            c.drawString(left_margin, y, wrapped)
-            y -= 16
-        y -= 4
+        c.setFont("Helvetica", 11)
+        headline_lines = wrap_line(headline_line, "Helvetica", 11, usable_width - 28)
+        hy = y - 44
+        for hl in headline_lines[:2]:
+            c.drawString(left_margin + 14, hy, hl)
+            hy -= 14
 
-    for raw in body_lines:
-        line = raw.rstrip()
+    y -= 96
 
-        if y <= bottom_margin:
-            c.showPage()
-            y = page_height - top_margin
+    # Contact band
+    contact_lines = sections.get("CONTACT", [])
+    if contact_lines:
+        c.setFillColor(colors.HexColor("#F1F5F9"))
+        c.roundRect(left_margin, y - 36, usable_width, 30, 6, stroke=0, fill=1)
+        c.setFillColor(colors.HexColor("#1F2937"))
+        c.setFont("Helvetica", 10)
+        contact_text = " | ".join([ln.strip() for ln in contact_lines if ln.strip()])
+        clipped = contact_text[:260] + ("..." if len(contact_text) > 260 else "")
+        for row in wrap_line(clipped, "Helvetica", 10, usable_width - 18)[:2]:
+            c.drawString(left_margin + 10, y - 22, row)
+            y -= 12
+        y -= 20
+    else:
+        y -= 6
 
-        if line.strip() == "":
-            y -= 8
+    def draw_section_title(title: str, current_y: float) -> float:
+        if current_y <= bottom_margin + 36:
+            current_y = new_page()
+        c.setFillColor(colors.HexColor("#1D4ED8"))
+        c.roundRect(left_margin, current_y - 18, usable_width, 16, 4, stroke=0, fill=1)
+        c.setFillColor(colors.white)
+        c.setFont("Helvetica-Bold", 10.5)
+        c.drawString(left_margin + 8, current_y - 14, title)
+        return current_y - 24
+
+    # Section rendering order for human readability
+    ordered = ["PROFESSIONAL SUMMARY", "SKILLS", "PROJECTS"]
+    for title in ordered:
+        content = sections.get(title, [])
+        if not content:
             continue
+        y = draw_section_title(title, y)
 
-        if line.strip() in section_titles:
-            y -= 6
-            c.setFont("Helvetica-Bold", 12.5)
-            c.drawString(left_margin, y, line.strip())
-            y -= 16
-            c.setFont("Helvetica", 10.5)
-            continue
+        for raw in content:
+            if y <= bottom_margin + 16:
+                y = new_page()
+            line = raw.rstrip()
+            if not line.strip():
+                y -= 6
+                continue
 
-        is_project_bullet = line.startswith("- ")
-        is_detail_line = line.startswith("  ")
-        font_name = "Helvetica-Bold" if is_project_bullet else "Helvetica"
-        font_size = 10.5
-        text = line[2:].strip() if is_project_bullet else line.strip()
-        indent = left_margin + 10 if is_detail_line else left_margin
-        if is_project_bullet:
-            c.setFont("Helvetica", 10.5)
-            c.drawString(left_margin, y, "-")
-            indent = left_margin + 12
+            is_bullet = line.startswith("- ")
+            is_detail = line.startswith("  ")
+            text = line[2:].strip() if is_bullet else line.strip()
+            font_name = "Helvetica-Bold" if (title == "PROJECTS" and is_bullet) else "Helvetica"
+            font_size = 10.4
+            indent = left_margin + 12 if is_detail else left_margin + 2
+            if is_bullet:
+                c.setFillColor(colors.HexColor("#123765"))
+                c.setFont("Helvetica-Bold", 10)
+                c.drawString(left_margin + 2, y, "-")
+                indent = left_margin + 14
 
-        c.setFont(font_name, font_size)
-        for wrapped in wrap_line(text, font_name, font_size):
-            if y <= bottom_margin:
-                c.showPage()
-                y = page_height - top_margin
-                c.setFont(font_name, font_size)
-            c.drawString(indent, y, wrapped)
-            y -= 14
+            c.setFillColor(colors.HexColor("#111827"))
+            c.setFont(font_name, font_size)
+            wrapped = wrap_line(text, font_name, font_size, page_width - indent - right_margin)
+            for row in wrapped:
+                if y <= bottom_margin + 12:
+                    y = new_page()
+                    c.setFillColor(colors.HexColor("#111827"))
+                    c.setFont(font_name, font_size)
+                c.drawString(indent, y, row)
+                y -= 13.5
+            y -= 2
+
+        y -= 6
 
     c.save()
     buffer.seek(0)
@@ -1133,10 +1210,13 @@ def reset_password(token: str):
 @app.route("/logout")
 def logout():
     """Logout user"""
-    session.pop('logged_in', None)
-    session.pop('username', None)
+    session.clear()
     flash('Logged out successfully!', 'success')
-    return redirect(url_for('login'))
+    response = redirect(url_for('login'))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 # ===== ROUTES: DASHBOARD (PROTECTED) =====
 

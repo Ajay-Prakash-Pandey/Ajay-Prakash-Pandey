@@ -61,6 +61,10 @@ SITE_URL = os.environ.get('SITE_URL', os.environ.get('RENDER_EXTERNAL_URL', ''))
 # Database Configuration
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site.db')
 database_url = os.environ.get('DATABASE_URL', '').strip()
+if database_url and '://' not in database_url:
+    # Misconfigured DATABASE_URL (e.g., a secret token). Fall back to SQLite.
+    app.logger.warning("Invalid DATABASE_URL format; falling back to SQLite.")
+    database_url = ''
 if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)

@@ -23,17 +23,22 @@ except ImportError:
             return wz_check_password_hash(str(pw_hash), password)
 try:
     from dotenv import load_dotenv
-    load_dotenv()  # Load .env file if it exists
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    load_dotenv(os.path.join(project_dir, '.env'))  # Prefer project-local .env
+    load_dotenv(os.path.join(project_dir, '.env.local'))  # Optional local override
+    load_dotenv()  # Fallback to default dotenv discovery
 except ImportError:
     pass  # python-dotenv not installed, use environment variables only
 import secrets 
 import smtplib
 from datetime import datetime, timedelta, timezone
+from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
 from typing import Any, Callable, List, Optional
 from xml.sax.saxutils import escape as xml_escape
+import base64
 
 # ===== FLASK APP SETUP =====
 app = Flask(__name__, static_folder='Static')
@@ -188,9 +193,21 @@ def inject_portfolio():
 
 # ===== EMAIL CONFIGURATION (Free SMTP - Gmail) =====
 # Store these as environment variables in production
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'ajayprakashp59@gmail.com')
+SENDER_EMAIL = (
+    os.environ.get('SENDER_EMAIL')
+    or os.environ.get('SMTP_USERNAME')
+    or os.environ.get('EMAIL_USERNAME')
+    or 'ajayprakashp59@gmail.com'
+).strip()
 # ⚠️ IMPORTANT: Replace with YOUR 16-CHARACTER GMAIL APP PASSWORD from https://myaccount.google.com/apppasswords
-SENDER_PASSWORD = os.environ.get('SENDER_PASSWORD', '')
+SENDER_PASSWORD = (
+    os.environ.get('SENDER_PASSWORD')
+    or os.environ.get('GMAIL_APP_PASSWORD')
+    or os.environ.get('SMTP_PASSWORD')
+    or os.environ.get('EMAIL_PASSWORD')
+    or os.environ.get('APP_PASSWORD')
+    or ''
+).strip().replace(' ', '')
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'ajayprakashp59@gmail.com')
 ADMIN_PHONE = os.environ.get('ADMIN_PHONE', '8881254553')  # For WhatsApp/Contact
 ADMIN_NAME = os.environ.get('ADMIN_NAME', 'Ajay Prakash')
@@ -286,23 +303,43 @@ def send_email(to_email: str, subject: str, html_content: str) -> bool:
         if not SENDER_EMAIL or not SENDER_PASSWORD:
             app.logger.error("Email credentials missing. Set SENDER_EMAIL and SENDER_PASSWORD.")
             return False
+        if "your_16_character_app_password_here" in SENDER_PASSWORD.lower():
+            app.logger.error("SENDER_PASSWORD is still placeholder text. Set a real Gmail app password.")
+            return False
 
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
+        msg['Subject'] = str(Header(subject, 'utf-8'))
         msg['From'] = SENDER_EMAIL
         msg['To'] = to_email
         
-        part = MIMEText(html_content, 'html')
+        part = MIMEText(html_content, 'html', 'utf-8')
         msg.attach(part)
-        
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(SENDER_EMAIL, SENDER_PASSWORD)
-            server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
-        
-        return True
+
+        # Try SSL first, then fall back to STARTTLS if port 465 is blocked.
+        try:
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=20) as server:
+                server.login(SENDER_EMAIL, SENDER_PASSWORD)
+                server.sendmail(SENDER_EMAIL, [to_email], msg.as_string())
+            return True
+        except Exception as ssl_error:
+            app.logger.warning("SMTP SSL failed, retrying with STARTTLS: %s", str(ssl_error))
+            with smtplib.SMTP('smtp.gmail.com', 587, timeout=20) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(SENDER_EMAIL, SENDER_PASSWORD)
+                server.sendmail(SENDER_EMAIL, [to_email], msg.as_string())
+            return True
     except Exception as e:
         app.logger.exception("Email sending failed: %s", str(e))
         return False
+
+
+def is_email_configured() -> bool:
+    """Return True if SMTP credentials are present and not placeholders."""
+    if not SENDER_EMAIL or not SENDER_PASSWORD:
+        return False
+    return "your_16_character_app_password_here" not in SENDER_PASSWORD.lower()
 
 def send_password_reset_email(email: str, reset_url: str) -> bool:
     """Send password reset email"""
@@ -319,7 +356,7 @@ def send_password_reset_email(email: str, reset_url: str) -> bool:
     """
     return send_email(email, "Password Reset Request", html)
 
-def send_contact_notification(name: str, email: str, message: str) -> bool:
+def send_contact_notification(name: str, email: str, phone: str, message: str) -> bool:
     """Send contact notification to admin with full details"""
     html = f"""
     <html>
@@ -340,6 +377,10 @@ def send_contact_notification(name: str, email: str, message: str) -> bool:
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 12px; font-weight: bold; color: #667eea;">📧 Email:</td>
                             <td style="padding: 12px; color: #333;"><a href="mailto:{email}" style="color: #667eea; text-decoration: none;">{email}</a></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: bold; color: #667eea;">📱 Phone:</td>
+                            <td style="padding: 12px; color: #333;">{phone}</td>
                         </tr>
                     </table>
                     
@@ -367,7 +408,7 @@ def send_contact_notification(name: str, email: str, message: str) -> bool:
         </body>
     </html>
     """
-    return send_email(ADMIN_EMAIL, f"🔔 NEW CONTACT: {name}", html)
+    return send_email(ADMIN_EMAIL, f"NEW CONTACT: {name}", html)
 
 def send_contact_acknowledgement(name: str, email: str) -> bool:
     """Send acknowledgement email to the contact form sender."""
@@ -402,6 +443,16 @@ def validate_email(email: str) -> bool:
     """Validate email format"""
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
+
+
+def validate_phone(phone: str) -> bool:
+    """Validate contact number format (allows +, spaces, dashes, parentheses)."""
+    if not phone:
+        return False
+    cleaned = re.sub(r'[\s\-\(\)]', '', phone)
+    if cleaned.startswith('+'):
+        cleaned = cleaned[1:]
+    return cleaned.isdigit() and 7 <= len(cleaned) <= 15
 
 def validate_password(password: str) -> tuple[bool, str]:
     """Validate password strength"""
@@ -931,14 +982,19 @@ def contact_post():
 
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
+        phone = request.form.get('phone', '').strip()
         message = request.form.get('message', '').strip()
 
-        if not all([name, email, message]):
+        if not all([name, email, phone, message]):
             flash('All fields are required', 'error')
             return redirect(url_for('contact'))
 
         if not validate_email(email):
             flash('Invalid email address', 'error')
+            return redirect(url_for('contact'))
+
+        if not validate_phone(phone):
+            flash('Invalid phone number', 'error')
             return redirect(url_for('contact'))
 
         if len(message) < 10:
@@ -950,11 +1006,16 @@ def contact_post():
             db.session.add(contact_msg)
             db.session.commit()
 
-        admin_email_sent = send_contact_notification(name, email, message)
+        if not is_email_configured():
+            app.logger.error("Email notifications skipped: SENDER_EMAIL/SENDER_PASSWORD are not configured.")
+            flash('Message saved. To receive email notifications, set SENDER_EMAIL and SENDER_PASSWORD in .env, then restart the app.', 'warning')
+            return redirect(url_for('contact'))
+
+        admin_email_sent = send_contact_notification(name, email, phone, message)
         user_email_sent = send_contact_acknowledgement(name, email)
 
         wa_phone = ADMIN_PHONE.replace('+', '').replace(' ', '').replace('-', '')
-        wa_admin_message = f'NEW MESSAGE:\n\nFrom: {name}\nEmail: {email}\n\nMessage:\n{message}'
+        wa_admin_message = f'NEW MESSAGE:\n\nFrom: {name}\nEmail: {email}\nPhone: {phone}\n\nMessage:\n{message}'
         wa_admin_link = get_whatsapp_message_link(wa_phone, wa_admin_message)
 
         if admin_email_sent and user_email_sent:
@@ -1268,11 +1329,18 @@ def edit_profile():
                 if 'profile_image' in request.files:
                     file = request.files['profile_image']
                     if file and file.filename and file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
-                        filename = f"profile_{datetime.utcnow().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}"
-                        filepath = os.path.join(app.static_folder, 'images', filename)
-                        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-                        file.save(filepath)
-                        portfolio.profile_image = f"/Static/images/{filename}"
+                        ext = file.filename.rsplit('.', 1)[1].lower()
+                        mime_by_ext = {
+                            'jpg': 'image/jpeg',
+                            'jpeg': 'image/jpeg',
+                            'png': 'image/png',
+                            'gif': 'image/gif',
+                            'webp': 'image/webp',
+                        }
+                        image_bytes = file.read()
+                        if image_bytes:
+                            encoded = base64.b64encode(image_bytes).decode('ascii')
+                            portfolio.profile_image = f"data:{mime_by_ext[ext]};base64,{encoded}"
                 
                 # Handle resume upload
                 if 'resume' in request.files:

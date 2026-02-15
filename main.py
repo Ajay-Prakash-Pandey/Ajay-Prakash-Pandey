@@ -1670,6 +1670,11 @@ def api_health():
     """Health check endpoint for hosting probes."""
     return jsonify({'success': True, 'status': 'ok'}), 200
 
+@app.route("/googlee8af82905a798382.html", methods=['GET'])
+def google_site_verification():
+    """Serve Google Search Console verification file."""
+    return Response("google-site-verification: googlee8af82905a798382.html", mimetype="text/html")
+
 @app.route("/api/new-messages", methods=['GET'])
 @login_required
 def get_new_messages():

@@ -302,48 +302,53 @@ def login_required(f: Callable[..., Any]) -> Callable[..., Any]:
 # ===== EMAIL UTILITIES (FREE - SMTP) =====
 
 def send_email(to_email: str, subject: str, html_content: str) -> bool:
-    """Send email using Gmail SMTP (free)"""
-    try:
-        if not SENDER_EMAIL or not SENDER_PASSWORD:
-            app.logger.error("Email credentials missing. Set SENDER_EMAIL and SENDER_PASSWORD.")
-            return False
-        if "your_16_character_app_password_here" in SENDER_PASSWORD.lower():
-            app.logger.error("SENDER_PASSWORD is still placeholder text. Set a real Gmail app password.")
-            return False
-
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = str(Header(subject, 'utf-8'))
-        msg['From'] = SENDER_EMAIL
-        msg['To'] = to_email
-        
-        part = MIMEText(html_content, 'html', 'utf-8')
-        msg.attach(part)
-
-        # Try SSL first, then fall back to STARTTLS if port 465 is blocked.
-        try:
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=20) as server:
-                server.login(SENDER_EMAIL, SENDER_PASSWORD)
-                server.sendmail(SENDER_EMAIL, [to_email], msg.as_string())
-            return True
-        except Exception as ssl_error:
-            app.logger.warning("SMTP SSL failed, retrying with STARTTLS: %s", str(ssl_error))
-            with smtplib.SMTP('smtp.gmail.com', 587, timeout=20) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(SENDER_EMAIL, SENDER_PASSWORD)
-                server.sendmail(SENDER_EMAIL, [to_email], msg.as_string())
-            return True
-    except Exception as e:
-        app.logger.exception("Email sending failed: %s", str(e))
-        return False
+    """Email sending disabled to avoid SMTP failures on free hosting."""
+    # Original Gmail SMTP implementation (kept for reference):
+    # try:
+    #     if not SENDER_EMAIL or not SENDER_PASSWORD:
+    #         app.logger.error("Email credentials missing. Set SENDER_EMAIL and SENDER_PASSWORD.")
+    #         return False
+    #     if "your_16_character_app_password_here" in SENDER_PASSWORD.lower():
+    #         app.logger.error("SENDER_PASSWORD is still placeholder text. Set a real Gmail app password.")
+    #         return False
+    #
+    #     msg = MIMEMultipart('alternative')
+    #     msg['Subject'] = str(Header(subject, 'utf-8'))
+    #     msg['From'] = SENDER_EMAIL
+    #     msg['To'] = to_email
+    #
+    #     part = MIMEText(html_content, 'html', 'utf-8')
+    #     msg.attach(part)
+    #
+    #     # Try SSL first, then fall back to STARTTLS if port 465 is blocked.
+    #     try:
+    #         with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=20) as server:
+    #             server.login(SENDER_EMAIL, SENDER_PASSWORD)
+    #             server.sendmail(SENDER_EMAIL, [to_email], msg.as_string())
+    #         return True
+    #     except Exception as ssl_error:
+    #         app.logger.warning("SMTP SSL failed, retrying with STARTTLS: %s", str(ssl_error))
+    #         with smtplib.SMTP('smtp.gmail.com', 587, timeout=20) as server:
+    #             server.ehlo()
+    #             server.starttls()
+    #             server.ehlo()
+    #             server.login(SENDER_EMAIL, SENDER_PASSWORD)
+    #             server.sendmail(SENDER_EMAIL, [to_email], msg.as_string())
+    #         return True
+    # except Exception as e:
+    #     app.logger.exception("Email sending failed: %s", str(e))
+    #     return False
+    app.logger.warning("Email sending is disabled (SMTP blocked on free hosting).")
+    return False
 
 
 def is_email_configured() -> bool:
-    """Return True if SMTP credentials are present and not placeholders."""
-    if not SENDER_EMAIL or not SENDER_PASSWORD:
-        return False
-    return "your_16_character_app_password_here" not in SENDER_PASSWORD.lower()
+    """Email sending disabled; always return False."""
+    # Original check (kept for reference):
+    # if not SENDER_EMAIL or not SENDER_PASSWORD:
+    #     return False
+    # return "your_16_character_app_password_here" not in SENDER_PASSWORD.lower()
+    return False
 
 def send_password_reset_email(email: str, reset_url: str) -> bool:
     """Send password reset email"""

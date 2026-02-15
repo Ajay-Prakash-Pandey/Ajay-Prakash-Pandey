@@ -1675,6 +1675,38 @@ def google_site_verification():
     """Serve Google Search Console verification file."""
     return Response("google-site-verification: googlee8af82905a798382.html", mimetype="text/html")
 
+@app.route("/robots.txt", methods=['GET'])
+def robots_txt():
+    """Robots.txt for search engines."""
+    base_url = get_base_url()
+    content = f"User-agent: *\nAllow: /\nSitemap: {base_url}/sitemap.xml\n"
+    return Response(content, mimetype="text/plain")
+
+@app.route("/sitemap.xml", methods=['GET'])
+def sitemap_xml():
+    """Basic sitemap for public pages."""
+    base_url = get_base_url()
+    pages = [
+        "/",
+        "/about",
+        "/projects",
+        "/skills",
+        "/contact",
+        "/download-resume",
+        "/download-resume-readable",
+    ]
+    items = []
+    for path in pages:
+        loc = f"{base_url}{path}"
+        items.append(
+            f"<url><loc>{xml_escape(loc)}</loc></url>"
+        )
+    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    xml += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+    xml += "\n".join(items)
+    xml += "\n</urlset>\n"
+    return Response(xml, mimetype="application/xml")
+
 @app.route("/api/new-messages", methods=['GET'])
 @login_required
 def get_new_messages():

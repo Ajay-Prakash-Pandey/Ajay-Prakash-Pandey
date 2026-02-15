@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Ajay Prakash Pandey Services | ML Engineer | Data Analyst | Python Developer{% endblock %}
+{% block meta_description %}Services by Ajay Prakash Pandey for Machine Learning Engineer, ML Engineer, Data Analyst, Data Analysis Services, Software Engineer, Python Developer, Full Stack Developer, SQL Developer, and Web Developer roles.{% endblock %}
+{% block meta_keywords %}Ajay Prakash Pandey services, machine learning engineer services, ml engineer services, data analyst services, data analysis services, web developer services, software engineer services, python developer services, full stack developer services, sql developer services{% endblock %}
+
+{% block og_title %}Ajay Prakash Pandey Services | Machine Learning Engineer | Data Analyst{% endblock %}
+{% block og_description %}Hire Ajay Prakash Pandey for machine learning, data analysis, Python backend, SQL, and full stack web development services.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Ajay Prakash Pandey - Software and Data Services",
+  "url": {{ url_for('services', _external=True)|tojson }},
+  "provider": {
+    "@type": "Person",
+    "name": "Ajay Prakash Pandey",
+    "url": {{ url_for('index', _external=True)|tojson }}
+  },
+  "serviceType": [
+    "Machine Learning Engineer Services",
+    "ML Engineer Services",
+    "Data Analyst Services",
+    "Data Analysis Services",
+    "Software Engineering Services",
+    "Python Developer Services",
+    "Full Stack Developer Services",
+    "SQL Developer Services",
+    "Web Developer Services"
+  ],
+  "sameAs": [
+    {{ (portfolio.github if portfolio and portfolio.github else "https://github.com/Ajay-Prakash-Pandey")|tojson }},
+    {{ (portfolio.linkedin if portfolio and portfolio.linkedin else "https://www.linkedin.com/in/ajayprakashpandey")|tojson }}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What roles is Ajay Prakash Pandey available for?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ajay Prakash Pandey is available for Machine Learning Engineer, ML Engineer, Data Analyst, Software Engineer, Python Developer, Full Stack Developer, SQL Developer, and Web Developer opportunities."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can Ajay Prakash Pandey help with data analysis services?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Services include data cleaning, SQL analysis, dashboard-ready datasets, model building, and reporting insights."
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .services-page { background: #f8fafc; padding: 48px 20px; }
+  .services-wrap { max-width: 1100px; margin: 0 auto; }
+  .services-hero { background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: #fff; border-radius: 12px; padding: 36px 24px; }
+  .services-hero h1 { margin: 0 0 10px 0; font-size: clamp(1.5rem, 5vw, 2.4rem); }
+  .services-hero p { margin: 0; color: #dbe7ff; }
+  .roles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px; }
+  .role-card { background: #fff; border-left: 4px solid #1a365d; border-radius: 10px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); font-weight: 600; color: #1a202c; }
+  .services-card { background: #fff; border-radius: 12px; margin-top: 18px; padding: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .services-card h2 { margin-top: 0; color: #1a202c; }
+  .service-list { margin: 0; padding-left: 18px; color: #4a5568; line-height: 1.7; }
+  .cta-row { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .cta-btn { background: #1a365d; color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; }
+  .note { color: #4a5568; margin-top: 10px; }
+  @media (max-width: 640px) {
+    .services-page { padding: 32px 10px; }
+    .services-hero { padding: 20px 14px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="services-page">
+  <div class="services-wrap">
+    <section class="services-hero">
+      <h1>Ajay Prakash Pandey Services</h1>
+      <p>Machine Learning Engineer, Data Analyst, Software Engineer, Python Developer, Full Stack Developer, SQL Developer, and Web Developer services.</p>
+    </section>
+
+    <section class="services-card">
+      <h2>Job Titles and Roles</h2>
+      <div class="roles-grid">
+        <div class="role-card">Machine Learning Engineer</div>
+        <div class="role-card">ML Engineer</div>
+        <div class="role-card">Data Analyst</div>
+        <div class="role-card">Data Analysis Services</div>
+        <div class="role-card">Software Engineer</div>
+        <div class="role-card">Python Developer</div>
+        <div class="role-card">Full Stack Developer</div>
+        <div class="role-card">SQL Developer</div>
+        <div class="role-card">Web Developer</div>
+      </div>
+      <p class="note">Also matches common typo searches like "machine learning enginner" and "data analysit".</p>
+    </section>
+
+    <section class="services-card">
+      <h2>Service Coverage</h2>
+      <ul class="service-list">
+        <li>Machine learning model development and evaluation in Python.</li>
+        <li>Data cleaning, SQL analysis, and actionable reporting.</li>
+        <li>Backend API development with Flask and database integration.</li>
+        <li>Full stack web development for portfolio and business apps.</li>
+      </ul>
+      <div class="cta-row">
+        <a class="cta-btn" href="{{ url_for('projects') }}">View Projects</a>
+        <a class="cta-btn" href="{{ url_for('skills') }}">Technical Skills</a>
+        <a class="cta-btn" href="{{ url_for('contact') }}">Contact for Services</a>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -902,7 +902,7 @@ def robots_txt():
 def sitemap_xml():
     """Generate a sitemap for major public pages."""
     today = datetime.now(timezone.utc).date().isoformat()
-    public_endpoints = ["index", "about", "projects", "skills", "contact", "download_resume"]
+    public_endpoints = ["index", "services", "about", "projects", "skills", "contact", "download_resume"]
     urls = []
 
     for endpoint in public_endpoints:
@@ -949,6 +949,12 @@ def about():
         return render_template('AboutME.html', portfolio=portfolio)
     except:
         return render_template('AboutME.html', portfolio=None)
+
+@app.route("/services")
+def services():
+    """SEO landing page for roles and services."""
+    portfolio = Portfolio.query.first()
+    return render_template('services.html', portfolio=portfolio)
 
 @app.route("/projects")
 def projects():

@@ -1,150 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Ajay Prakash Pandey portfolio featuring software development, machine learning, backend engineering, and project work.">
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <link rel="canonical" href="{{ request.base_url }}">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Ajay Prakash Pandey | Software Developer Portfolio">
-    <meta property="og:description" content="Software development and machine learning portfolio with projects, skills, and contact details.">
-    <meta property="og:url" content="{{ request.base_url }}">
-    <meta property="og:site_name" content="Ajay Prakash Pandey Portfolio">
-    {% if portfolio and portfolio.profile_image %}
-    <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ portfolio.profile_image }}">
-    <meta name="twitter:image" content="{{ request.url_root.rstrip('/') }}{{ portfolio.profile_image }}">
-    {% endif %}
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Ajay Prakash Pandey | Software Developer Portfolio">
-    <meta name="twitter:description" content="Software development and machine learning portfolio with projects and skills.">
-    <meta name="theme-color" content="#1a365d">
-    <meta name="author" content="Ajay Prakash Pandey">
-    <title>Ajay Prakash Pandey | Software Developer Portfolio</title>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": {{ admin_name|tojson }},
-      "url": {{ url_for('index', _external=True)|tojson }},
-      "jobTitle": "Software Developer",
-      "sameAs": [
-        "https://github.com/Ajay-Prakash-Pandey",
-        "https://www.linkedin.com/in/ajayprakashpandey"
-      ]
-    }
-    </script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/responsive.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/master.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='Components/Css/navbar.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/index.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='Components/Css/footer_responsive.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/mobile-fixes.css') }}">
-</head>
+{% block title %}Ajay Prakash Pandey | Machine Learning Engineer | Data Analyst | Software Engineer{% endblock %}
+{% block meta_description %}Ajay Prakash Pandey portfolio for Machine Learning Engineer, ML Engineer, Data Analyst, Software Engineer, Python Developer, Full Stack Developer, SQL Developer, and Web Developer roles.{% endblock %}
+{% block meta_keywords %}Ajay Prakash Pandey, machine learning engineer, ml engineer, data analyst, data analysis services, web developer, software engineer, python developer, full stack developer, sql developer{% endblock %}
 
-<body>
-    {% include 'includes/navbar.html' %}
+{% block og_title %}Ajay Prakash Pandey | Machine Learning Engineer | Data Analyst | Software Engineer{% endblock %}
+{% block og_description %}Portfolio of Ajay Prakash Pandey with ML, data analytics, Python backend, and full stack development projects.{% endblock %}
 
-    <main class="main-content">
-        <!-- HERO SECTION -->
-        <section class="hero-section-home">
-            <div class="container hero-grid">
-                {% if portfolio and portfolio.profile_image %}
-                    <div class="hero-media">
-                        <img src="{{ portfolio.profile_image }}" alt="Professional Profile" class="hero-image" loading="eager" fetchpriority="high" decoding="async">
-                    </div>
-                {% endif %}
-                <div class="hero-text">
-                    <h1 class="hero-title">{{ admin_name }}</h1>
-                    <p class="hero-role">Software Developer | Machine Learning & Data Analytics</p>
-                    <p class="hero-tagline">Building Scalable Solutions | AI/ML Enthusiast | Backend Engineer</p>
-                </div>
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Ajay Prakash Pandey",
+  "url": {{ url_for('index', _external=True)|tojson }},
+  "sameAs": [
+    {{ (portfolio.github if portfolio and portfolio.github else "https://github.com/Ajay-Prakash-Pandey")|tojson }},
+    {{ (portfolio.linkedin if portfolio and portfolio.linkedin else "https://www.linkedin.com/in/ajayprakashpandey")|tojson }}
+  ],
+  "knowsAbout": [
+    "Machine Learning",
+    "Data Analysis",
+    "Python",
+    "SQL",
+    "Flask",
+    "Full Stack Development",
+    "Web Development",
+    "Software Engineering"
+  ],
+  "hasOccupation": [
+    { "@type": "Occupation", "name": "Machine Learning Engineer" },
+    { "@type": "Occupation", "name": "ML Engineer" },
+    { "@type": "Occupation", "name": "Data Analyst" },
+    { "@type": "Occupation", "name": "Software Engineer" },
+    { "@type": "Occupation", "name": "Python Developer" },
+    { "@type": "Occupation", "name": "Full Stack Developer" },
+    { "@type": "Occupation", "name": "SQL Developer" },
+    { "@type": "Occupation", "name": "Web Developer" }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='CSS/index.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="hero-section-home">
+    <div class="container hero-grid">
+        {% if portfolio and portfolio.profile_image %}
+            <div class="hero-media">
+                <img src="{{ portfolio.profile_image }}" alt="Ajay Prakash Pandey - Machine Learning Engineer and Software Developer" class="hero-image" loading="eager" fetchpriority="high" decoding="async">
             </div>
-        </section>
+        {% endif %}
+        <div class="hero-text">
+            <h1 class="hero-title">Ajay Prakash Pandey</h1>
+            <p class="hero-role">Machine Learning Engineer | Data Analyst | Software Engineer</p>
+            <p class="hero-tagline">Python Developer | Full Stack Developer | SQL and Web Development</p>
+        </div>
+    </div>
+</section>
 
-        <!-- INTRODUCTION -->
-        <section class="page-section">
-            <div class="hero-intro">
-                <p class="hero-intro-text">
-                    <strong>AI/ML-focused Software Developer</strong> with strong foundations in Computer Science, Python, backend engineering, and data science. Experienced in building scalable backend systems, developing machine learning models, and transforming data into actionable insights. Proficient in algorithms, OOP, and system fundamentals with hands-on project experience in analytics and web applications. Seeking opportunities in Software Development, Machine Learning, or Data Analytics to deliver scalable and data-driven solutions.
+<section class="page-section">
+    <div class="hero-intro">
+        <p class="hero-intro-text">
+            <strong>Ajay Prakash Pandey</strong> is an AI/ML-focused software developer with strong foundations in Python, backend engineering, SQL, data analysis, and scalable web applications. Open to opportunities as a Machine Learning Engineer, ML Engineer, Data Analyst, Software Engineer, Python Developer, Full Stack Developer, SQL Developer, and Web Developer.
+        </p>
+    </div>
+</section>
+
+<section class="page-section">
+    <h2 class="section-heading">Target Roles</h2>
+    <div class="services-grid">
+        <div class="service-card"><div class="service-title">Machine Learning Engineer</div></div>
+        <div class="service-card"><div class="service-title">ML Engineer</div></div>
+        <div class="service-card"><div class="service-title">Data Analyst</div></div>
+        <div class="service-card"><div class="service-title">Software Engineer</div></div>
+        <div class="service-card"><div class="service-title">Python Developer</div></div>
+        <div class="service-card"><div class="service-title">Full Stack Developer</div></div>
+        <div class="service-card"><div class="service-title">SQL Developer</div></div>
+        <div class="service-card"><div class="service-title">Web Developer</div></div>
+    </div>
+</section>
+
+<section class="page-section">
+    <h2 class="section-heading">Technical Skills & Expertise</h2>
+    <div class="expertise-section">
+        <div class="expertise-grid">
+            {% for skill in skills %}
+            <div class="expertise-item">
+                <i class="fas fa-code" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
+                <strong>{{ skill.skill_name }}</strong>
+                <p>
+                    {% if skill.description %}{{ skill.description }}{% endif %}
+                    {% if skill.description %}<br>{% endif %}
+                    {{ skill.category }}{% if skill.proficiency is not none %} | {{ skill.proficiency }}%{% endif %}
                 </p>
             </div>
-        </section>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 
-        <!-- EXPERTISE HIGHLIGHTS -->
-        <section class="page-section">
-            <h2 class="section-heading">Technical Skills & Expertise</h2>
-            <div class="expertise-section">
-                <div class="expertise-grid">
-                    {% for skill in skills %}
-                    <div class="expertise-item">
-                        <i class="fas fa-code" style="font-size: 2rem; color: #1a365d; margin-bottom: 10px;"></i>
-                        <strong>{{ skill.skill_name }}</strong>
-                        <p>
-                            {% if skill.description %}{{ skill.description }}{% endif %}
-                            {% if skill.description %}<br>{% endif %}
-                            {{ skill.category }}{% if skill.proficiency is not none %} | {{ skill.proficiency }}%{% endif %}
-                        </p>
-                    </div>
-                    {% endfor %}
-                </div>
+<section class="page-section">
+    <h2 class="section-heading">What I Can Bring to Your Team</h2>
+    <div class="services-grid">
+        {% for card in service_cards %}
+        <div class="service-card">
+            <div class="service-icon">
+                <i class="{{ card.icon_class }}"></i>
             </div>
-        </section>
+            <div class="service-title">{{ card.title }}</div>
+            <div class="service-desc">{{ card.description }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 
-        <!-- PROFESSIONAL SERVICES -->
-        <section class="page-section">
-            <h2 class="section-heading">What I Can Bring to Your Team</h2>
-            <div class="services-grid">
-                {% for card in service_cards %}
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="{{ card.icon_class }}"></i>
-                    </div>
-                    <div class="service-title">{{ card.title }}</div>
-                    <div class="service-desc">{{ card.description }}</div>
-                </div>
-                {% endfor %}
-            </div>
-        </section>
+<section class="page-section">
+    <h2 class="section-heading">Why Hire a Fresher Like Me?</h2>
+    <div class="why-grid">
+        {% for item in why_items %}
+        <div class="why-item">
+            <h4><i class="{{ item.icon_class }}"></i> {{ item.title }}</h4>
+            <p>{{ item.description }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 
-        <!-- WHY CHOOSE ME -->
-        <section class="page-section">
-            <h2 class="section-heading">Why Hire a Fresher Like Me?</h2>
-            <div class="why-grid">
-                {% for item in why_items %}
-                <div class="why-item">
-                    <h4><i class="{{ item.icon_class }}"></i> {{ item.title }}</h4>
-                    <p>{{ item.description }}</p>
-                </div>
-                {% endfor %}
-            </div>
-        </section>
+<section class="cta-section-home">
+    <div class="cta-card">
+        <h2 class="cta-title">Let's Grow Together!</h2>
+        <p class="cta-text">I'm excited about opportunities to learn, contribute, and grow as a developer. Let's connect!</p>
+        <div class="cta-buttons">
+            <a href="{{ url_for('contact') }}" class="btn-primary-custom">
+                <i class="fas fa-envelope"></i> Reach Out
+            </a>
+            <a href="{{ url_for('services') }}" class="btn-secondary-custom">
+                <i class="fas fa-briefcase"></i> View Services
+            </a>
+            <a href="{{ url_for('about') }}" class="btn-secondary-custom btn-secondary-invert">
+                <i class="fas fa-user"></i> Know Me Better
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
 
-        <!-- CTA SECTION -->
-        <section class="cta-section-home">
-            <div class="cta-card">
-                <h2 class="cta-title">Let's Grow Together!</h2>
-                <p class="cta-text">I'm excited about opportunities to learn, contribute, and grow as a developer. Let's connect!</p>
-                <div class="cta-buttons">
-                    <a href="{{ url_for('contact') }}" class="btn-primary-custom">
-                        <i class="fas fa-envelope"></i> Reach Out
-                    </a>
-                    <a href="{{ url_for('about') }}" class="btn-secondary-custom btn-secondary-invert">
-                        <i class="fas fa-user"></i> Know Me Better
-                    </a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    {% include 'includes/footer.html' %}
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='JavaScript/index.js') }}"></script>
-</body>
-
-</html>
-
+{% block extra_js %}
+<script src="{{ url_for('static', filename='JavaScript/index.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Python + SQL Practice | Ajay Prakash Pandey{% endblock %}
+{% block meta_description %}Python and SQL practice log by Ajay Prakash Pandey with query drills, data cleaning, and mini analytics tasks.{% endblock %}
+{% block meta_keywords %}python sql practice, sql developer learning, python developer learning, Ajay Prakash Pandey{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Python + SQL Practice",
+  "author": {"@type": "Person", "name": "Ajay Prakash Pandey"},
+  "about": ["Python", "SQL", "Data Cleaning", "Analytics"]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page { background: #f8fafc; padding: 44px 20px; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  h1 { color: #1a202c; }
+  .muted { color: #64748b; }
+  ul { line-height: 1.7; color: #334155; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="wrap">
+    <article class="card">
+      <h1>Python + SQL Practice</h1>
+      <p class="muted">Status: Active learning page. Updated weekly.</p>
+      <h2>Practice Tasks</h2>
+      <ul>
+        <li>Wrote SQL for joins, aggregation, ranking, and filtering.</li>
+        <li>Used Python Pandas to clean null values and duplicates.</li>
+        <li>Converted SQL output into CSV summaries for reporting.</li>
+        <li>Practiced query optimization using indexes and limits.</li>
+      </ul>
+      <h2>Next 7 Days</h2>
+      <ul>
+        <li>Solve 30 SQL questions and publish solutions.</li>
+        <li>Create one small dataset pipeline from raw CSV to report.</li>
+        <li>Add screenshots of query outputs and charts.</li>
+      </ul>
+      <p><a href="{{ url_for('roadmap') }}">Back to 30-day roadmap</a></p>
+    </article>
+  </div>
+</div>
+{% endblock %}

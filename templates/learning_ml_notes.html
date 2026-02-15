@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Machine Learning Notes | Ajay Prakash Pandey{% endblock %}
+{% block meta_description %}Machine learning learning notes by Ajay Prakash Pandey covering model basics, evaluation metrics, and practical workflow.{% endblock %}
+{% block meta_keywords %}machine learning notes, ml engineer beginner notes, Ajay Prakash Pandey learning{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Machine Learning Notes",
+  "author": {"@type": "Person", "name": "Ajay Prakash Pandey"},
+  "about": ["Machine Learning", "Model Evaluation", "Python"]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page { background: #f8fafc; padding: 44px 20px; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  h1 { color: #1a202c; }
+  .muted { color: #64748b; }
+  ul { line-height: 1.7; color: #334155; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="wrap">
+    <article class="card">
+      <h1>Machine Learning Notes</h1>
+      <p class="muted">Status: Active learning page. Updated weekly.</p>
+      <h2>What I Learned</h2>
+      <ul>
+        <li>Difference between supervised and unsupervised learning.</li>
+        <li>Train/validation/test split and avoiding data leakage.</li>
+        <li>Metrics: accuracy, precision, recall, F1, MAE, RMSE.</li>
+        <li>Feature scaling basics and model comparison workflow.</li>
+      </ul>
+      <h2>Next 7 Days</h2>
+      <ul>
+        <li>Complete one classification notebook with confusion matrix.</li>
+        <li>Complete one regression notebook with error analysis.</li>
+        <li>Publish summary in GitHub README.</li>
+      </ul>
+      <p><a href="{{ url_for('roadmap') }}">Back to 30-day roadmap</a></p>
+    </article>
+  </div>
+</div>
+{% endblock %}

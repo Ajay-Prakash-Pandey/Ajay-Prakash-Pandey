@@ -902,7 +902,19 @@ def robots_txt():
 def sitemap_xml():
     """Generate a sitemap for major public pages."""
     today = datetime.now(timezone.utc).date().isoformat()
-    public_endpoints = ["index", "services", "about", "projects", "skills", "contact", "download_resume"]
+    public_endpoints = [
+        "index",
+        "services",
+        "roadmap",
+        "learning_machine_learning_notes",
+        "learning_python_sql_practice",
+        "learning_data_analysis_exercises",
+        "about",
+        "projects",
+        "skills",
+        "contact",
+        "download_resume",
+    ]
     urls = []
 
     for endpoint in public_endpoints:
@@ -955,6 +967,30 @@ def services():
     """SEO landing page for roles and services."""
     portfolio = Portfolio.query.first()
     return render_template('services.html', portfolio=portfolio)
+
+@app.route("/roadmap")
+def roadmap():
+    """30-day beginner learning roadmap."""
+    portfolio = Portfolio.query.first()
+    return render_template('roadmap.html', portfolio=portfolio)
+
+@app.route("/learning/machine-learning-notes")
+def learning_machine_learning_notes():
+    """Learning notes page for ML fundamentals."""
+    portfolio = Portfolio.query.first()
+    return render_template('learning_ml_notes.html', portfolio=portfolio)
+
+@app.route("/learning/python-sql-practice")
+def learning_python_sql_practice():
+    """Learning notes page for Python + SQL practice."""
+    portfolio = Portfolio.query.first()
+    return render_template('learning_python_sql.html', portfolio=portfolio)
+
+@app.route("/learning/data-analysis-exercises")
+def learning_data_analysis_exercises():
+    """Learning notes page for data analysis exercises."""
+    portfolio = Portfolio.query.first()
+    return render_template('learning_data_analysis.html', portfolio=portfolio)
 
 @app.route("/projects")
 def projects():

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Data Analysis Exercises | Ajay Prakash Pandey{% endblock %}
+{% block meta_description %}Data analysis exercise log by Ajay Prakash Pandey including EDA, visualization, and insight writing practice.{% endblock %}
+{% block meta_keywords %}data analysis exercises, data analyst beginner portfolio, Ajay Prakash Pandey data analysis{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Data Analysis Exercises",
+  "author": {"@type": "Person", "name": "Ajay Prakash Pandey"},
+  "about": ["Data Analysis", "EDA", "Visualization", "Insights"]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page { background: #f8fafc; padding: 44px 20px; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  h1 { color: #1a202c; }
+  .muted { color: #64748b; }
+  ul { line-height: 1.7; color: #334155; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="wrap">
+    <article class="card">
+      <h1>Data Analysis Exercises</h1>
+      <p class="muted">Status: Active learning page. Updated weekly.</p>
+      <h2>Exercises Completed</h2>
+      <ul>
+        <li>Exploratory analysis on dataset distributions and outliers.</li>
+        <li>Created trend and category visualizations using Python.</li>
+        <li>Wrote insight summaries in plain business language.</li>
+        <li>Built a simple checklist for data quality validation.</li>
+      </ul>
+      <h2>Next 7 Days</h2>
+      <ul>
+        <li>Publish one end-to-end EDA notebook with conclusions.</li>
+        <li>Add before/after data cleaning comparison table.</li>
+        <li>Share one LinkedIn post with key findings.</li>
+      </ul>
+      <p><a href="{{ url_for('roadmap') }}">Back to 30-day roadmap</a></p>
+    </article>
+  </div>
+</div>
+{% endblock %}

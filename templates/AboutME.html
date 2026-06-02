@@ -10,6 +10,7 @@
     width: 100%;
     background: #f8fafc;
     padding-bottom: 2rem;
+    overflow-x: clip;
   }
 
   .about-hero {
@@ -54,6 +55,17 @@
     margin-top: 1rem;
   }
 
+  .about-card p,
+  .mini-card p,
+  .timeline-item p {
+    overflow-wrap: anywhere;
+    margin: 0;
+  }
+
+  .about-card p + p {
+    margin-top: .6rem;
+  }
+
   .about-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -74,9 +86,9 @@
   }
 
   .cta-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: .7rem;
-    flex-wrap: wrap;
     margin-top: .8rem;
   }
 
@@ -87,10 +99,21 @@
     border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    width: 100%;
+    text-align: center;
+    line-height: 1.35;
   }
 
   @media (max-width: 900px) {
     .about-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .cta-row {
       grid-template-columns: 1fr 1fr;
     }
   }
@@ -107,6 +130,10 @@
     .cta-btn {
       width: 100%;
       text-align: center;
+    }
+
+    .cta-row {
+      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -126,7 +153,8 @@
     <section class="about-card">
       <h2>About Me</h2>
       <p>AI/ML-focused developer with a strong foundation in Python, backend engineering, and data analytics. I build practical solutions and keep improving through hands-on projects.</p>
-      <p>Email: ajayprakashp59@gmail.com | Phone: +91 8881254553</p>
+      <p>Email: <a href="mailto:ajayprakashp59@gmail.com">ajayprakashp59@gmail.com</a></p>
+      <p>Phone: <a href="tel:+918881254553">+91 8881254553</a></p>
     </section>
 
     <section class="about-card">

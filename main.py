@@ -37,6 +37,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
 from typing import Any, Callable, List, Optional
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from xml.sax.saxutils import escape as xml_escape
 import base64
 
@@ -45,7 +46,10 @@ app = Flask(__name__, static_folder='Static')
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)  # type: ignore[assignment]
 
-is_production = os.environ.get("RENDER", "").lower() == "true" or os.environ.get("ENVIRONMENT", "").lower() == "production"
+is_production = (
+    os.environ.get("VERCEL", "").lower() == "1"
+    or os.environ.get("ENVIRONMENT", "").lower() == "production"
+)
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
@@ -56,22 +60,51 @@ app.config.update(
     PREFERRED_URL_SCHEME='https',
 )
 
-SITE_URL = os.environ.get('SITE_URL', os.environ.get('RENDER_EXTERNAL_URL', '')).strip().rstrip('/')
+vercel_url = os.environ.get('VERCEL_URL', '').strip().rstrip('/')
+if vercel_url and '://' not in vercel_url:
+    vercel_url = f"https://{vercel_url}"
+SITE_URL = os.environ.get('SITE_URL', vercel_url).strip().rstrip('/')
 
 # Database Configuration
+def normalize_database_url(url: str) -> str:
+    """Return a SQLAlchemy URL that works with hosted MySQL providers."""
+    if not url:
+        return ''
+    if url.startswith('mysql://'):
+        url = url.replace('mysql://', 'mysql+pymysql://', 1)
+
+    if url.startswith(('mysql+pymysql://', 'mysql+mysqlconnector://')):
+        split_url = urlsplit(url)
+        query = dict(parse_qsl(split_url.query, keep_blank_values=True))
+        ssl_mode = query.pop('ssl-mode', query.pop('ssl_mode', '')).upper()
+        if ssl_mode and ssl_mode != 'DISABLED':
+            # Aiven commonly supplies ssl-mode=REQUIRED. PyMySQL expects ssl=true.
+            query.setdefault('ssl', 'true')
+        url = urlunsplit((
+            split_url.scheme,
+            split_url.netloc,
+            split_url.path,
+            urlencode(query),
+            split_url.fragment,
+        ))
+    return url
+
+
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site.db')
-database_url = os.environ.get('DATABASE_URL', '').strip()
+database_url = normalize_database_url(os.environ.get('DATABASE_URL', '').strip())
 if database_url and '://' not in database_url:
     # Misconfigured DATABASE_URL (e.g., a secret token). Fall back to SQLite.
     app.logger.warning("Invalid DATABASE_URL format; falling back to SQLite.")
     database_url = ''
 if database_url:
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', '280')),
+}
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -874,7 +907,7 @@ def init_db(interactive_admin: bool = False):
         print(f"Database error: {e}")
         return False
 
-# Ensure tables/default content exist when app is loaded by gunicorn.
+# Ensure tables/default content exist when the app is loaded by Vercel.
 init_db(interactive_admin=False)
 
 # ===== ROUTES: PUBLIC =====

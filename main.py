@@ -1337,8 +1337,13 @@ def logout():
 
 # ===== ROUTES: DASHBOARD (PROTECTED) =====
 
-@login_required
 @app.route("/dashboard")
+@app.route("/admin")
+@app.route("/admin-panel")
+@app.route("/admin/dashboard")
+@app.route("/admn")
+@app.route("/admn-panel")
+@login_required
 def dashboard():
     """Admin dashboard"""
     try:
@@ -1361,8 +1366,8 @@ def dashboard():
         flash(f'Dashboard error: {str(e)}', 'error')
         return redirect(url_for('index'))
 
-@login_required
 @app.route("/dashboard/profile", methods=['GET', 'POST'])
+@login_required
 def edit_profile():
     """Edit portfolio profile"""
     if request.method == 'POST':
@@ -1425,8 +1430,8 @@ def edit_profile():
 
 # ===== ROUTES: PROJECTS =====
 
-@login_required
 @app.route("/add_project", methods=['POST'])
+@login_required
 def add_project():
     """Add new project"""
     try:
@@ -1449,8 +1454,8 @@ def add_project():
     
     return redirect(url_for('dashboard'))
 
-@login_required
 @app.route("/delete_project/<int:project_id>", methods=['GET', 'POST'])
+@login_required
 def delete_project(project_id: int):
     """Delete project"""
     try:
@@ -1469,8 +1474,8 @@ def delete_project(project_id: int):
 
 # ===== ROUTES: HOMEPAGE CONTENT =====
 
-@login_required
 @app.route("/add_service_card", methods=['POST'])
+@login_required
 def add_service_card():
     """Add homepage service card."""
     try:
@@ -1498,8 +1503,8 @@ def add_service_card():
         flash(f'Error: {str(e)}', 'error')
     return redirect(url_for('dashboard'))
 
-@login_required
 @app.route("/delete_service_card/<int:card_id>", methods=['POST'])
+@login_required
 def delete_service_card(card_id: int):
     """Delete homepage service card."""
     try:
@@ -1515,8 +1520,8 @@ def delete_service_card(card_id: int):
         flash(f'Error: {str(e)}', 'error')
     return redirect(url_for('dashboard'))
 
-@login_required
 @app.route("/add_why_item", methods=['POST'])
+@login_required
 def add_why_item():
     """Add 'why hire me' card."""
     try:
@@ -1544,8 +1549,8 @@ def add_why_item():
         flash(f'Error: {str(e)}', 'error')
     return redirect(url_for('dashboard'))
 
-@login_required
 @app.route("/delete_why_item/<int:item_id>", methods=['POST'])
+@login_required
 def delete_why_item(item_id: int):
     """Delete 'why hire me' card."""
     try:
@@ -1563,8 +1568,8 @@ def delete_why_item(item_id: int):
 
 # ===== ROUTES: SKILLS =====
 
-@login_required
 @app.route("/add_skill", methods=['POST'])
+@login_required
 def add_skill():
     """Add new skill"""
     try:
@@ -1598,8 +1603,8 @@ def add_skill():
     
     return redirect(url_for('dashboard'))
 
-@login_required
 @app.route("/edit_skill/<int:skill_id>", methods=['POST'])
+@login_required
 def edit_skill(skill_id: int):
     """Edit existing skill"""
     try:
@@ -1622,8 +1627,8 @@ def edit_skill(skill_id: int):
     
     return redirect(url_for('dashboard'))
 
-@login_required
 @app.route("/delete_skill/<int:skill_id>", methods=['GET', 'POST'])
+@login_required
 def delete_skill(skill_id: int):
     """Delete skill"""
     try:
@@ -1642,8 +1647,8 @@ def delete_skill(skill_id: int):
 
 # ===== ROUTES: MESSAGES =====
 
-@login_required
 @app.route("/messages")
+@login_required
 def messages():
     """View all contact messages"""
     try:
@@ -1654,8 +1659,8 @@ def messages():
         flash(f'Error: {str(e)}', 'error')
         return redirect(url_for('dashboard'))
 
-@login_required
 @app.route("/delete_message/<int:msg_id>", methods=['GET', 'POST'])
+@login_required
 def delete_message(msg_id: int):
     """Delete contact message"""
     try:

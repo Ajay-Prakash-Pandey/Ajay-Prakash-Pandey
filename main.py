@@ -40,6 +40,7 @@ from typing import Any, Callable, List, Optional
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from xml.sax.saxutils import escape as xml_escape
 import base64
+import tempfile
 
 # ===== FLASK APP SETUP =====
 app = Flask(__name__, static_folder='Static')
@@ -101,10 +102,26 @@ if database_url:
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+# Configure SQLAlchemy engine options and optional TLS for TiDB
+engine_options = {
     'pool_pre_ping': True,
     'pool_recycle': int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', '280')),
 }
+# If a TiDB CA certificate is provided as base64 in env, write it to a temp file
+# and instruct PyMySQL/SQLAlchemy to use it for TLS connections.
+tidb_ca_b64 = os.environ.get('TIDB_CA_BASE64', '').strip()
+if tidb_ca_b64:
+    try:
+        ca_bytes = base64.b64decode(tidb_ca_b64)
+        ca_path = os.path.join(tempfile.gettempdir(), 'tidb-ca.pem')
+        with open(ca_path, 'wb') as _f:
+            _f.write(ca_bytes)
+        engine_options['connect_args'] = {'ssl': {'ca': ca_path}}
+        app.logger.info('TiDB CA loaded to %s', ca_path)
+    except Exception:
+        app.logger.exception('Failed to load TIDB_CA_BASE64; continuing without CA')
+
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)

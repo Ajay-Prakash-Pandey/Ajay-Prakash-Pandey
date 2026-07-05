@@ -19,9 +19,11 @@ If you prefer to pass CA as base64, use --ca-base64 instead of --ca-path.
 import argparse
 import base64
 import os
+import re
 import secrets
 import sys
 import tempfile
+from urllib.parse import quote
 
 try:
     import pymysql
@@ -77,16 +79,27 @@ def main():
 
     try:
         with conn.cursor() as cur:
-            cur.execute(f"CREATE DATABASE IF NOT EXISTS `{args.db}`;")
-            print('Created or verified database', args.db)
-            # Use quoted identifier for username
-            cur.execute(f"CREATE USER IF NOT EXISTS '{args.web_user}'@'%' IDENTIFIED BY %s;", (web_pwd,))
-            cur.execute(f"GRANT ALL PRIVILEGES ON `{args.db}`.* TO '{args.web_user}'@'%';")
+            db_name = args.db
+            web_user = args.web_user
+            db_quoted = f"`{db_name.replace('`', '``')}`"
+            user_quoted = conn.escape(web_user)
+            password_quoted = conn.escape(web_pwd)
+
+            cur.execute(f"CREATE DATABASE IF NOT EXISTS {db_quoted};")
+            print('Created or verified database', db_name)
+            cur.execute(
+                f"CREATE USER IF NOT EXISTS {user_quoted}@'%' IDENTIFIED BY {password_quoted};"
+            )
+            cur.execute(
+                f"GRANT ALL PRIVILEGES ON {db_quoted}.* TO {user_quoted}@'%';"
+            )
             cur.execute('FLUSH PRIVILEGES;')
             conn.commit()
-            print('Created/updated web user:', args.web_user)
+            print('Created/updated web user:', web_user)
             print('Web user password:', web_pwd)
-            db_url = f"mysql+pymysql://{args.web_user}:{web_pwd}@{args.host}:{args.port}/{args.db}?charset=utf8mb4"
+            url_user = quote(web_user, safe='')
+            url_pass = quote(web_pwd, safe='')
+            db_url = f"mysql+pymysql://{url_user}:{url_pass}@{args.host}:{args.port}/{db_name}?charset=utf8mb4"
             print('\nDATABASE_URL=')
             print(db_url)
             if ca_path:

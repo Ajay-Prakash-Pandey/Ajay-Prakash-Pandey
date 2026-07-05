@@ -42,10 +42,10 @@ SITE_URL=https://your-vercel-or-custom-domain.com
 Optional environment variables:
 
 ```env
-ADMIN_NAME=Your Name
-ADMIN_PHONE=919999999999
-ADMIN_GITHUB=https://github.com/your-user
-ADMIN_LINKEDIN=https://www.linkedin.com/in/your-user
+ADMIN_NAME=Ajay Prakash Pandey
+ADMIN_PHONE=8881254553
+ADMIN_GITHUB=https://github.com/Ajay-Prakash-Pandey
+ADMIN_LINKEDIN=https://www.linkedin.com/in/ajayprakashpandey/
 SENDER_EMAIL=your-email@gmail.com
 SENDER_PASSWORD=your-gmail-app-password
 WHATSAPP_MESSAGE_PREFIX=Hello! I got your message and will reply soon.
